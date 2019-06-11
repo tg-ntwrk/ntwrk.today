@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: default
 title:  "Как писать на Markdown"
 tags: [basics]
 ---
