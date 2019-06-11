@@ -1,8 +1,10 @@
 ---
-layout: default
-title:  "Как писать на Markdown"
+layout: post
+title:  "Использование Markdown"
 tags: [basics]
 ---
+
+Базовая часть разметки Markdown.
 
 ```markdown
 Базовая часть разметки Markdown идентична той, что используется в Telegram
