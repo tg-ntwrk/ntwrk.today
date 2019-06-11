@@ -4,8 +4,6 @@ title:  "Как писать на Markdown"
 tags: [basics]
 ---
 
-## Как писать на Markdown
-
 ```markdown
 Базовая часть разметки Markdown идентична той, что используется в Telegram
 
