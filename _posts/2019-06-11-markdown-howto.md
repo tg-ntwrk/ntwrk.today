@@ -1,6 +1,10 @@
-# Как писать на Markdown
+---
+layout: post
+title:  "Как писать на Markdown"
+tags: [basics]
+---
 
-## Общая информация
+## Как писать на Markdown
 
 ```markdown
 Базовая часть разметки Markdown идентична той, что используется в Telegram
