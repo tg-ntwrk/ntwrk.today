@@ -1,37 +1,18 @@
-## Welcome to GitHub Pages
+# Вводная информация
 
-You can use the [editor on GitHub](https://github.com/tg-ntwrk/ntwrk.today/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+## Что это
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+ntwrk.today это свободный сборник статей и заметок от участников telegram-группы [@ntwrk](https://t.me/ntwrk)
 
-### Markdown
+## Зачем это
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Затем.
 
-```markdown
-Syntax highlighted code block
+## Как начать писать
 
-# Header 1
-## Header 2
-### Header 3
+Чтобы разово разместить заметку можно воспользоваться встроенной функцией Github - pull request с вашей заметкой.
+Администратор примет коммит и она сразу же появится в списке.
 
-- Bulleted
-- List
+Если вы планируете часто вносить обновления, то необходимо чтобы вас добавили в список постоянных авторов.
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/tg-ntwrk/ntwrk.today/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+Для этого напишите в Telegram одному из администраторов: [@sk1f3r](https://t.me/sk1f3r) или [@mxssl](https://t.me/mxssl)
