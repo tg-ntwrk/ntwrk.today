@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Catching bogons ASNs on the Internet"
+title:  "Catching bogon ASNs on the Internet"
 tags: [python, RIPE, BGP, MRT]
 author: "freefd"
 ---
