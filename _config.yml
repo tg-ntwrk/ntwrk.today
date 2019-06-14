@@ -1,2 +1,8 @@
 theme: jekyll-theme-cayman
-github: [metadata]
+github:
+  repo: https://github.com/tg-ntwrk/ntwrk.today
+title: Ntwrk Today
+description: A collection of articles from members of Telegram group @ntwrk
+url: "https://ntwrk.today/"
+
+

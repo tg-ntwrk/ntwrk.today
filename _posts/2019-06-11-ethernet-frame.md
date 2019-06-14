@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Ethernet II frame"
-tags: [Layer2]
+tags: layer2
 ---
 
 Ethernet II packet and frame structure

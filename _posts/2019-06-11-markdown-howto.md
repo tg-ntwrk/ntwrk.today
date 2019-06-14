@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "Использование Markdown"
-tags: [basics]
+title: "Использование Markdown"
+tags: basics
 ---
 
 Базовая часть разметки Markdown.

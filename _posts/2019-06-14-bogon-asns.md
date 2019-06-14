@@ -1,10 +1,9 @@
 ---
 layout: post
 title:  "Catching bogon ASNs on the Internet"
-tags: [python, RIPE, BGP, MRT]
-author: "freefd"
+tags: python ripe bgp mrt
+author: freefd
 ---
-
 
 Today we will try to find bogon ASNs without any network equipment using only RIPE RIS wild Internet routing information and our modest coding skills in Python 3. Probably, you may want to use this PoC to monitor your own network.
 
