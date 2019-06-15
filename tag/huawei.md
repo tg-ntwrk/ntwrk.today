@@ -1,6 +1,6 @@
 ---
 layout: tagpage
-title: "Tag: basics"
-tag: basics
+title: "Tag: huawei"
+tag: huawei
 robots: noindex
 ---
