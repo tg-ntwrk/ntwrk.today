@@ -1,5 +1,14 @@
-Tags:
-{% for tag in page.tags -%} 
-  {% capture tag_name %}{{ tag }}{% endcapture -%} 
-  <a href="/tag/{{ tag_name }}"><nobr>{{ tag_name }}</nobr></a>&nbsp;
-{%- endfor %}
+{%- if page.url != "/" %}
+  {% assign showTags = true %}
+{% endif %}
+
+{%- if page.url contains 'tag' %}
+  {% assign showTags = false %}
+{% endif %}
+
+{%- if showTags and page.tags != empty %}
+  Tags: {% for tag in page.tags -%} 
+    {% capture tag_name %}{{ tag }}{% endcapture -%} 
+    <a href="/tag/{{ tag_name }}"><nobr>{{ tag_name }}</nobr></a>&nbsp;
+  {%- endfor %}
+{% endif %}

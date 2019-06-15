@@ -37,19 +37,7 @@
 
     <main id="content" class="main-content" role="main">
       {{ content }}
-
-      {% if page.url != "/" %}
-         {% assign showTags = true %}
-      {% endif %}
-
-      {% if page.url contains 'tag' %}
-         {% assign showTags = false %}
-      {% endif %}
-
-      {% if showTags %}
-        {% include tags.html %}
-      {% endif %}
-
+      {% include tags.html %}
       <footer class="site-footer">
         {% if site.github.is_project_page %}
           <span class="site-footer-owner"><a href="{{ site.github.repository_url }}">{{ site.github.repository_name }}</a> is maintained by <a href="{{ site.github.owner_url }}">{{ site.github.owner_name }}</a>.</span>
