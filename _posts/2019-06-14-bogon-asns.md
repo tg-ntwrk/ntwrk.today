@@ -16,8 +16,8 @@ First you need to install [bgpscanner](https://www.isolario.it/web_content/php/s
 #### Installing from packages
 Please pay attention that our destination OS is Ubuntu/Debian.
 ```bash
-$ wget https://www.isolario.it/tools/libisocore1_1.0-1_20190212_amd64.deb https://www.isolario.it/tools/bgpscanner_1.0-1_20190212_amd64.deb
-$ sudo dpkg -i libisocore1_1.0-1_20190212_amd64.deb bgpscanner_1.0-1_20190212_amd64.deb
+$ wget https://www.isolario.it/tools/libisocore1_1.0-1_20190320_amd64.deb https://www.isolario.it/tools/bgpscanner_1.0-1_20190320_amd64.deb
+$ sudo dpkg -i libisocore1_1.0-1_20190320_amd64.deb bgpscanner_1.0-1_20190320_amd64.deb
 ```
 #### Building from source using Docker
 To build from source we will use Docker and temporary build image without any packaging to DEB or RPM packages.
