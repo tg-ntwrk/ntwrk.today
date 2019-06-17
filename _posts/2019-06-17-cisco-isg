@@ -1,0 +1,258 @@
+﻿---
+layout: post
+title:  "Настройка Cisco ISG"
+tags: cisco isg
+author: "zhenyatsk"
+---
+
+Настройка Cisco ISG на роутерах ASR100X.
+
+ISG фунционал является развитием более простого SSG фунционала на роутерах 72хх.
+
+
+## Типы сабскрайберов и возможные варианты старта сессий
+
+1. l2-connected - вланы с клиентами терминируются на роутере без промежуточных маршрутизаторов.
+В данном случае роутер должен быть dhcp серверов или dhcp-relay. Возможен старт как по unclassified mac address, так и dhcp.
+1. l3-connected (routed) - вланы с клиентами терминируются на промежуточном L3-устройстве (устройств может быть несколько, главное сделать так, чтобы трафик проходил через роутер с ISG симметрично). В данном случае dhcp relay настраивается на L3-устройстве. Сессии стартуют по unclassified ip address.
+
+> **Примечание:** Для l2-connected также возможен старт по unclassified ip address, для этого необходимо настроить на интерфейсе
+`ip subscriber routed
+  initiator unclassified ip-address`.
+
+
+## Плюсы и минусы 
+
+У каждого из этих вариантов есть свои + и -. 
+Первый вариант:
++ лучше с точки зрения контроля абонента;
+- межабонентский трафик проходит через роутер с ISG;
+- резервирование, штатного способа нет и если хочется, то нужно костылить;
+Второй вариант:
++ межабонентский трафик замыкается до роутера с ISG;
+- недостаточный контроль абонента и нужно придумывать костыли для обхода;
++ достаточно просто организовать резервирование за счет IGP протокола маршрутизации.
+
+## Базовая настройка ААА
+
+aaa group server radius ISG-RADIUS
+ server name MAIN
+ ip radius source-interface ...
+!
+aaa authentication login ISG-AUTH-LIST group ISG-RADIUS
+aaa authorization network ISG-AUTH-LIST group ISG-RADIUS
+aaa authorization subscriber-service default local group ISG-RADIUS
+aaa accounting update newinfo periodic 5
+aaa accounting network ISG-ACT-LIST start-stop group ISG-RADIUS
+!
+
+radius-server attribute 44 include-in-access-req all
+radius-server attribute 44 extend-with-addr
+radius-server attribute 31 mac format one-byte delimiter colon
+radius-server attribute 31 send nas-port-detail mac-only
+radius-server attribute nas-port-id include circuit-id plus remote-id  separator #
+radius-server dead-criteria time 10 tries 1
+radius-server retransmit 2
+radius-server timeout 30
+radius-server deadtime 5
+radius-server vsa send cisco-nas-port
+!
+radius server MAIN
+ address ipv4 1.2.3.5 auth-port 1812 acct-port 1813
+ key secret
+!
+!
+
+> **Примечание:** `aaa authorization subscriber-service` отвечает за "откуда" брать сервисы. В примере приведен случай, когда вначале будет попытка найти сервис в локальном конфиге, далее будет сформирован запрос в радиус.
+
+
+## Описание настройки control policy
+
+Основная логика описывается в `policy-map type control`. В данной политике описываются действия и логика работы в момент возникновения различных событий.
+
+Пример политики для l3-connected 
+`
+class-map type control match-all IP_UNAUTH_COND
+ match authen-status unauthenticated 
+ match timer IP_UNAUTH_TIMER 
+!
+policy-map type control ISG_POLICY
+ class type control IP_UNAUTH_COND event timed-policy-expiry
+  10 service disconnect
+ !
+ class type control always event session-start
+  10 service-policy type service name RDR-SRV
+  20 authorize aaa list ISG-AUTH password secret identifier source-ip-address
+ !
+ class type control always event access-reject
+  10 service-policy type service name ALL-SRV
+  40 set-timer IP_UNAUTH_TIMER 20
+ !
+ class type control always event radius-timeout
+  10 service-policy type service name ALL-SRV
+  40 set-timer IP_UNAUTH_TIMER 30
+ !
+!
+`
+
+Данная политика работает следующим образом: При обнаружении трафика с неизвестного ip (сейчас идет речь про l3-connected клиентов) возникает event session-start. Внутри данного event происходит активация сервиса RDR-SRV, далее происходит попытка авторизации используя aaa-list ISG-AUTH с паролем secret. В радиус запросе в поле User-Name будет ip адрес сабскрайбера. Если радиус авторизовал (примеры ответов от радиуса будут дальше) абонента, то происходит выход из политики, если радиус ответил Access-Reject, то назначается сервис ALL-SRV из event access-reject и запускается таймер IP_UNAUTH_TIMER. Если радиус не ответил в отведенное время и количество попыток, то срабатывает event radius-timeout, который также назначает ALL-SRV и запускает таймер. По истечению таймера сессия будет сброшена и при ip трафике от абонента будет произведена попытка авторизации.
+
+> **Примечание:** Сервис ALL-SRV тут используется для пропуска в интернет для сохранения лояльности у абонентов при проблемах с радиусом/билингом и т.д.
+
+На l2-connected политики может выглядеть также, за исключением используемого identifier в строчке с authorize. Это позволяет в поле User-Name в радиусе отправить мак адрес или комбинацию s/c vlan tag с нужным разделителем и т.д.
+
+## Описание настройки локальных сервисов
+
+Сервисы могут быть заведены как локально, так и в радиусе. 
+Пример конфигурации локального сервиса для ограничения скорости:
+`
+ip access-list extended ALL_IN
+ permit ip any any
+ip access-list extended ALL_OUT
+ permit ip any any
+!
+class-map type traffic match-any CLASS-INET
+ match access-group input name ALL_IN
+ match access-group output name ALL_OUT
+!
+policy-map type service SPEED-100
+ 50 class type traffic CLASS-INET
+  police input 102400000
+  police output 102400000
+ !
+!
+`
+Пример сервиса для редиректа:
+`
+redirect server-group PORTAL_MONEY
+ server ip 1.2.3.4 port 80
+!
+ip access-list extended ACL_RDR_IN
+ permit tcp any any eq www
+ permit tcp any any eq 443
+ permit tcp any any eq 8000
+ permit tcp any any eq 8080
+!
+class-map type traffic match-any RDR-CLASS
+ match access-group input name ACL_RDR_IN
+!
+policy-map type service RDR-SRV
+ 100 class type traffic RDR-CLASS
+  redirect to group PORTAL_MONEY
+ !
+ class type traffic default in
+  drop
+ !
+!
+`
+Чтобы сервис редиректа работал правильно необходимо еще создать сервис OpenGarden (туда также можно внести списки платежных шлюзов или других ресурсов, которые должны быть доступны в момент, когда у пользователя нету сервиса предоставляющего доступ в интернет).
+> **Примечание:** Важно чтобы портал на который осуществляется редирект был за ISG относительно абонента, если не выполнить это условие редирект не отработает. 
+
+`
+ip access-list extended OPENGARDEN_ACL_IN
+ permit ip any host 1.2.3.4
+ permit ip any host 8.8.8.8
+!
+class-map type traffic match-any OPEN-CLASS
+ match access-group input name OPENGARDEN_ACL_IN
+!
+policy-map type service OPEN-GARDEN
+ 10 class type traffic OPEN-CLASS
+ !
+!
+`
+
+> **Примечание:** Цифра возле class type в настройках сервисов означает приоритет. Если необходимо разделить дать повышенную скорость до определенных сетей, то нужно создать сервис с наименьшим приоритетом. Например: 10 - IX, 20 - INET, 90 - OPENGARDEN, 100 - REDIRECT. В таком случае при прохождении пакета через железку, вначале будет проверено на вхождение в ACL для сервиса IX, далее INET.
+
+
+Как это же настроить через Radius найти можно в интернете, но стоит помнить, что радиус может быть недоступен и поэтому сервисы OpenGarden, Редиректов лучше держать локально в конфиге железки.
+
+## Примеры радиус запросов/ответов
+
+Для случае l2-connected запрос с initiator unclassified mac выглядит следующим образом:
+`
+      User-Name = "000f.3dca.bc02"
+      User-Password = "cisco"
+      Calling-Station-Id = "00:0f:3d:ca:bc:02"
+      NAS-Port-Type = Virtual
+      NAS-Port = 0
+      NAS-Port-Id = "000608b001000008#00030f2ce370"
+      Cisco-AVPair = "circuit-id-tag=000608b001000008"
+      Cisco-AVPair = "remote-id-tag=00030f2ce370"
+      Cisco-AVPair = "vendor-class-id-tag=MSFT 5.0"
+      Service-Type = Outbound-User
+      NAS-IP-Address = 1.2.3.4
+      Acct-Session-Id = "000040B9"
+`
+В ответ на данный запрос необходимо сформировать ответ:
+`
+      User-Name = "00:0f:3d:ca:bc:02",
+      Cisco-Account-Info = "ASPEED-100",          
+      Cisco-AVPair = "subscriber:accounting-list=ISG-ACT-LIST"
+`
+
+Опционально еще можно добавить к ответу:
+Cisco-AVPair = "subscriber:idle-timeout-direction=inbound"
+Idle-Timeout = 300
+
+Это позволит завершить сессию по неактивности со стороны абонента (inbound / input это направление трафика от абонента в сторону роутера с ISG).
+
+
+> **Примечание:** Перед названием сервиса обязательно должна быть буква A. Она означает активировать сервис.
+
+## COA
+
+COA представляет из себя интерфейс, который позволяет:
+1. Проверить активность сессии и получить набор сервисов и другой информации;
+Пример кода на perl:
+`
+#!/usr/bin/perl
+
+use strict;
+use Authen::Radius;
+
+my $host = "ip_cisco";
+my $coa  = "secret";
+
+my $rad = new Authen::Radius(Host => "$host:1700", Secret => $coa, Debug=>0);
+my $type;
+Authen::Radius->load_dictionary('/usr/share/freeradius/dictionary');
+Authen::Radius->load_dictionary('/usr/share/freeradius/dictionary.cisco');
+
+$rad->add_attributes({Name=>'User-Name', Value=>'00:0f:3d:ca:bc:02'});
+$rad->add_attributes({Name=>'Cisco-AVPair', Value=>'subscriber:command=account-status-query'});
+
+$rad->send_packet(COA_REQUEST) and $type = $rad->recv_packet();
+print "server response type = $type\n";
+
+for $a ($rad->get_attributes()) {
+    print "attr: name=$a->{'Name'} value=$a->{'Value'}\n";
+}
+`
+
+> **Примечание:** Также возможно поиск произвести по Acct-Session-Id
+
+1. Активировать/деактивировать сервис на сессии;
+В примере выше нужно заменить строчку 
+`
+$rad->add_attributes({Name=>'Cisco-AVPair', Value=>'subscriber:command=account-status-query'});
+`
+на
+`
+$rad->add_attributes({Name=>'Cisco-AVPair', Value=>'subscriber:service-name=SPEED-10M'});
+$rad->add_attributes({Name=>'Cisco-AVPair', Value=>'subscriber:command=activate-service'}); 
+`
+
+Для деактивации сервиса command deactivate-service
+
+1. Завершить сессию.
+Все аналогично, за исключением command account-logoff.
+
+
+## Некоторые юансы платформы:
+
+1. Для удобного траблшутинга ISG сервисов желательно отключать subscriber templating (требует перезагрузки).
+1. У роутера существует кэш сервисов и чтобы он очистился нужно подождать некоторое время после того как этот сервис перестанет использоваться абонентами. 
+1. Если в шасси стоит ESP-20 + SIP-40, то SIP-40 работает как SIP-10. То есть можно максимум поставить одну 10G SPA без переподписки.
+1. На ESP двухканальная память, но эти каналы работают независимо. Один канал работает на Non Priority трафик, а другой на Priority. 
+Посмотреть текущее распределение трафика можно командой `show platform hardware qfp active datapath utilization`. Для достижения максимальной пропускной способности железки (особенно при множестве включенных фич), желательно поддерживать соотношение Input Non-Priority к Priority 1 к 1. Обычно при достижении "потолка" начинаются overrun ошибки на интерфейсах.
