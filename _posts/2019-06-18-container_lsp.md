@@ -255,5 +255,5 @@ policy-options {
 ## Ссылки
 <b id="f1">1</b>. Dynamic Bandwidth Management Using Container LSP Overview: [https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html) [↩](#a1)<br/>
 <b id="f2">2</b>. Multi-path Label Switched Paths Signaled Using RSVP-TE: [https://tools.ietf.org/html/draft-kompella-mpls-rsvp-ecmp-00](https://tools.ietf.org/html/draft-kompella-mpls-rsvp-ecmp-00) [↩](#a2)<br/>
-<b id="f2">2</b>. Container LSP: [https://m.habr.com/ru/company/senetsy/blog/327456/](https://m.habr.com/ru/company/senetsy/blog/327456/) [↩](#a2)<br/>
-<b id="f2">2</b>. bin-packing problem: [https://www.ietf.org/proceedings/82/slides/pce-11.pdf](https://www.ietf.org/proceedings/82/slides/pce-11.pdf) [↩](#a2)<br/>
+<b id="f3">3</b>. Container LSP: [https://m.habr.com/ru/company/senetsy/blog/327456/](https://m.habr.com/ru/company/senetsy/blog/327456/) [↩](#a3)<br/>
+<b id="f4">4</b>. bin-packing problem: [https://www.ietf.org/proceedings/82/slides/pce-11.pdf](https://www.ietf.org/proceedings/82/slides/pce-11.pdf) [↩](#a4)<br/>
