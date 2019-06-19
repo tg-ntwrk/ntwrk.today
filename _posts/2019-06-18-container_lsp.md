@@ -83,7 +83,7 @@ groups {
                     }
                     splitting-merging {
                         minimum-member-lsps 4;
-                        minimum-member-lsps 12; ## если не задан maximum-member-lsps, то значение по умолчанию будет 64
+                        maximum-member-lsps 12; ## если не задан maximum-member-lsps, то значение по умолчанию будет 64
                         splitting-bandwidth 5g;
                         merging-bandwidth 1g;
                         normalization {
