@@ -11,7 +11,7 @@ author: "pnpwin"
 
 Проблемы, из-за которых был придуман cLSP \(TE++\):
 
-- **В сетях с отсутствием TE контроллера** существует проблема bin-packing, данная проблема происходит из-за недостаточной видимости отдельных LSP и пропускной способности для каждого устройства на ingress маршрутизаторе \(нет центрального видения, как на TE контроллере\). Конечно есть setup и hold приоритеты, но они работают ровно до того момента, пока не попадутся LSP с одинаковыми приоритетами и на транзитном маршрутизаторе не будет хватать пропускной способности;
+- **В сетях с отсутствием TE контроллера** существует [проблема bin-packing](https://www.ietf.org/proceedings/82/slides/pce-11.pdf), данная проблема происходит из-за недостаточной видимости отдельных LSP и пропускной способности для каждого устройства на ingress маршрутизаторе \(нет центрального видения, как на TE контроллере\). Конечно есть setup и hold приоритеты, но они работают ровно до того момента, пока не попадутся LSP с одинаковыми приоритетами и на транзитном маршрутизаторе не будет хватать пропускной способности;
 - Относительная сложность реализации ECMP;
 - Относительная сложность конфигурации.
 
@@ -36,7 +36,7 @@ author: "pnpwin"
 
 ## Реализация Container LSP
 
-Чтобы не быть переводчиком, рекомендую прочитать [документацию про реализацию](https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html#jd0e505) Container LSP.
+Чтобы не быть переводчиком, рекомендую прочитать [документацию про реализацию](https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html#jd0e505) Container LSP, а русскоязычным пользователям для более детального ознакомления [статью на habr](https://habr.com/ru/company/senetsy/blog/327456/).
 
 Краткое описание:
 
@@ -69,6 +69,8 @@ Container LSP создаёт sub-LSPs основываясь на вводных
 
 ## Пример конфигурации
 
+_Меня попросили для ясности описать почему использовались те или иные команды в конфигурации. Я опишу в комментариях к конфигурации часть команд не относящихся к данной статье. Для всего остального рекомендую воспользоваться [CLI Explorer](https://apps.juniper.net/cli-explorer/)_
+
 ```
 groups {
     container-lsp {
@@ -79,7 +81,7 @@ groups {
                         lsp-template-backbone;
                     }
                     splitting-merging {
-                        minimum-member-lsps 4;
+                        minimum-member-lsps 4; ## если не задать maximum-member-lsps, то значение будет по умолчанию 64
                         splitting-bandwidth 5g;
                         merging-bandwidth 1g;
                         normalization {
@@ -143,14 +145,14 @@ groups {
     }
 }
 chassis {
-    network-services enhanced-ip;
+    network-services enhanced-ip; ## MUST
 }
 interfaces {
     xe-0/0/7 {
         apply-groups [ interface-mpls ];
         description "link with site2-p1";
-        mtu 9200;
-        hold-time up 5000 down 0;
+        mtu 9200; ## depends on label stack
+        hold-time up 5000 down 0; ## бывает, что обрыв ВОЛС происходит не сразу и интерфейс начинает флапать, чтобы избежать этого, используется hold-time up в совокупности с BER и/или OAM LFM \(которых нету в данной конфигурации в виду избыточности конфигурации в рамках этой статьи\)
         unit 0 {
             family inet {
                 address 10.10.10.10/31;
@@ -160,8 +162,8 @@ interfaces {
 }
 routing-options {
   forwarding-table {
-       export Load_balance;
-       ecmp-fast-reroute;
+       export Load_balance; ## MUST
+       ecmp-fast-reroute; ## полезная фича для уменьшения потерь во время выхода из группы ECMP NH\(s\)
    }
 }
 protocols {
@@ -221,7 +223,7 @@ protocols {
             per-prefix-calculation all;
             node-link-degradation;
         }
-        traffic-engineering;
+        traffic-engineering; ## MUST
         reference-bandwidth 100g;
         lsa-refresh-interval 30;
         no-rfc-1583;
@@ -232,7 +234,7 @@ protocols {
             }
         }
     }
-    ldp {
+    ldp { ## optional
         auto-targeted-session;
         track-igp-metric;
         mtu-discovery;
