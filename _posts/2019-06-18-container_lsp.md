@@ -2,7 +2,7 @@
 layout: post
 title: "Динамическое управление пропускной способностью с использованием Container LSP (TE++)"
 tags: mpls rsvp clsp
-author: "pnpwin"
+author: "somovis"
 ---
 
 Динамическое управление пропускной способностью с использованием Container LSP \(TE++\).
