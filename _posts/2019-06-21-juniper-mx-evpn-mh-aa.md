@@ -9,13 +9,28 @@ author: "somovis"
 
 ## Коротко о EVPN
 
-Проблемы, из-за которых был придуман EVPN:
+EVPN использует новое BGP NLRI именуемое EVPN NLRI. Это NLRI использует существующее AFI 25 \(L2VPN\) и новое SAFI 70 \(EVPN\).
 
-- 1
+Проблемы или что было до EVPN:
+
+- В сценарии multihoming \(далее MH\) возможен только active/standby
+- Разные виды VPLS имеют между собой ряд отличий \(ряд плюсов и минусов\), например:
+  - У [VPLS LDP-signaling](https://tools.ietf.org/html/rfc4762) нету auto discovery \(далее AD\) PE, в следствии чего, на каждом PE маршрутизаторе в VPLS домене чтобы добавить или удалить site необходимо конфигурирование, но этот вид довольно прост в поиске и устранении неисправностей, и поддерживается большинством low-end устройств
+  - У [VPLS LDP-signaling with BGP-Autodiscovery](https://tools.ietf.org/html/rfc6074) уже есть AD, что облегчает поиск PE маршрутизаторов в VPLS домене. Для поиска PE маршрутизаторов используется BGP, в котором добавили новое [NLRI](https://tools.ietf.org/html/rfc4760), зарезервировано новое [extended-community](https://tools.ietf.org/html/rfc4360) [l2vpn-id](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/l2vpn-id-edit-routing-instances.html) и новый FEC \(FEC129\), а для сигнализации используется виртуальных каналов используется LDP, но этот вид сложнее в поиске и устранении неисправностей \(на первый взгляд\)
+  - У [VPLS BGP-signaling](https://tools.ietf.org/html/rfc4761) используется BGP в качестве поиска PE маршрутизаторов в VPLS домене и в качестве сигнализации виртуальных каналов, но поддерживается наименьшим количеством устройств
+- Все виды VPLS не предоставляют расширенных возможностей L3, за исключением банального добавления BVI/IRB интерфейса в VPLS домен для inter vlan routing, в следствии чего, на оборудовании \(зависит от реализации\) выполняется больше операций lookup и возможен не оптимальный packet flow
+- MAC-адреса изучаются исключительно на уровне data plane, что приводит к увеличению флуда BUM трафика в сети
+- re-learn и частичная потеря трафика во время VMotion
 
 Решения проблем, которые предлагает EVPN:
 
-- 1
+- В сценарии MH для каждого ethernet segment \(далее ES\) возможно использовать:
+  - active/standby \(a/s\)
+  - active/active \(a/a\)
+- У EVPN нету разных типов, что облегчает понимание технологии, поиск и устранение неисправностей, а так же EVPN просто расширяется за счёт добавления новых [route types](http://bgphelp.com/2017/05/22/evpn-route-types/), но, при этом, не все route types и возможности EVPN поддерживаются разными производителями и/или аппаратными/программными платформами
+- EVPN предоставляет расширенные возможности для inter vlan routing, имеет оптимальный packet flow, большой набор возможностей для DCI
+- MAC-адреса изучаются на уровне control plane \(представьте себе поведение L3VPN, только не по отношению к IP-адресам, а к MAC-адресам\), это позволяет получить оптимальный packet flow и уменьшить BUM трафик в сети
+- В 18.4 появилась поддержка [_VMTO_](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html), что позволяет оптимизировать входящий трафик на шлюз по умолчанию во время VMotion
 
 ## Чем хорош EVPN MH, почему именно A/A и причём тут L3VPN
 
@@ -23,9 +38,23 @@ author: "somovis"
 
 Краткое описание:
 
-EVPN pizdat
+- EVPN MH полезен тем, что можно использовать более одного PE маршрутизатора за каждый ES для обеспечения резервирования ES
+- EVPN MH A/A полезен тем, что каждый PE маршрутизатор за каждый ES способен отправлять и принимать трафик, это позволит использовать load sharing по всем интерфейсам всех PE-CE, дополнительно получаем "бонус" в виде усложнения поиска и устранения неисправностей, но мы этого не боимся
+- L3VPN необходим для того, чтобы обеспечить связность между L3VPN-only маршрутизаторами и маршрутизаторами с поддержкой EVPN + L3VPN
+
+## А теперь соберем всё вместе
+
+До 18.4 при использовании EVPN MH A/A + L3VPN:
+- EVPN route type 2 MAC+IP анонсировались со всех PE за ES, но, при этом, в L3VPN host prefix \(на Juniper по умолчанию при добавлении интерфейса IRB в EVPN RI и VRF RI импортируются префиксы из EVPN route type 2 MAC+IP в VRF как /32 префиксы\) анонсировались только с того PE маршрутизатора, который был выбран DF \(EVPN route type 2 MAC+IP изучаются в напрямую подключенном ES при получении ARP\), что в свою очередь не позволяло сделать честный A/A для всего трафика за этот ES
+
+Начиная с 18.4 при использовании EVPN MH A/A + L3VPN:
+- В 18.4 добавили [Multihomed Proxy MAC and IP Address Route Advertisement](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html#jd0e651), что в совокупности с VMTO и не хитрой политикой позволило анонсировать EVPN route type 2 MAC+IP и L3VPN host prefix со всех PE маршрутизаторов той площадки, на которой были изучены EVPN route type 2 MAC+IP в напрямую подключенном ES
+
+Данный сценарий был проверен с успешным результатом на оборудовании Juniper MX204 18.4R1-S1, Huawei NE20E-S2F VRP8 V800R010 и не успешным на ASR9001 6.4.2/6.3.3 \(совместно с Cisco TAC\).
 
 ## Пример конфигурации
+
+Конфигурация может изменятся по мере реализации новых возможностей производителем.
 
 _Меня попросили для ясности описать почему использовались те или иные команды в конфигурации. Я опишу в комментариях к конфигурации часть важных на мой взгляд команд. Для всего остального рекомендую воспользоваться [CLI Explorer](https://apps.juniper.net/cli-explorer/)_
 
@@ -270,3 +299,7 @@ routing-instances {
 <b id="f4">4</b>. Configuring Dynamic List Next Hop: [https://www.juniper.net/documentation/en_US/junos/topics/concept/configuring-dynamic-list.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/configuring-dynamic-list.html) [↩](#a4)<br/>
 <b id="f5">5</b>. Understanding BGP Route Prioritization: [https://www.juniper.net/documentation/en_US/junos/topics/concept/bgp-route-prioritization-overview.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/bgp-route-prioritization-overview.html) [↩](#a5)<br/>
 <b id="f6">6</b>. Сети для самых матёрых. Микровыпуск №7. EVPN: [https://habr.com/ru/post/316792/](https://habr.com/ru/post/316792/) [↩](#a6)<br/>
+<b id="f7">7</b>. Proxy IP->MAC Advertisement in EVPNs: [https://tools.ietf.org/html/draft-rbickhart-evpn-ip-mac-proxy-adv-00](https://tools.ietf.org/html/draft-rbickhart-evpn-ip-mac-proxy-adv-00) [↩](#a7)<br/>
+<b id="f8">8</b>. Ingress Virtual Machine Traffic Optimization: [https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html) [↩](#a8)<br/>
+<b id="f9">9</b>. EVPN Route Types: [http://bgphelp.com/2017/05/22/evpn-route-types/](http://bgphelp.com/2017/05/22/evpn-route-types/) [↩](#a9)<br/>
+<b id="f10">10</b>. Multiprotocol Extensions for BGP-4: [https://tools.ietf.org/html/rfc4760](https://tools.ietf.org/html/rfc4760) [↩](#a10)<br/>
