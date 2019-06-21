@@ -9,15 +9,11 @@ author: "somovis"
 
 ## Коротко о EVPN
 
-EVPN использует новое BGP NLRI именуемое EVPN NLRI. Это NLRI использует существующее AFI 25 \(L2VPN\) и новое SAFI 70 \(EVPN\).
+EVPN использует новое BGP NLRI именуемое EVPN NLRI. Это NLRI передаётся в существующем AFI 25 \(L2VPN\) и новом SAFI 70 \(EVPN\).
 
-Проблемы или что было до EVPN:
+Проблемы VPLS или что было до EVPN:
 
 - В сценарии multihoming \(далее MH\) возможен только active/standby
-- Разные виды VPLS имеют между собой ряд отличий \(ряд плюсов и минусов\), например:
-  - У [VPLS LDP-signaling](https://tools.ietf.org/html/rfc4762) нет auto discovery \(далее AD\) PE, в следствии чего, на каждом PE маршрутизаторе в VPLS домене чтобы добавить или удалить site необходимо конфигурирование, но этот вид довольно прост в поиске и устранении неисправностей, и поддерживается большинством low-end устройств
-  - У [VPLS LDP-signaling with BGP-Autodiscovery](https://tools.ietf.org/html/rfc6074) уже есть AD, что облегчает поиск PE маршрутизаторов в VPLS домене. Для поиска PE маршрутизаторов используется BGP, в котором добавили новое [NLRI](https://tools.ietf.org/html/rfc4760), зарезервировано новое [extended-community](https://tools.ietf.org/html/rfc4360) [l2vpn-id](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/l2vpn-id-edit-routing-instances.html) и новый FEC \(FEC129\), а для сигнализации используется виртуальных каналов используется LDP, но этот вид сложнее в поиске и устранении неисправностей \(на первый взгляд\)
-  - У [VPLS BGP-signaling](https://tools.ietf.org/html/rfc4761) используется BGP в качестве поиска PE маршрутизаторов в VPLS домене и в качестве сигнализации виртуальных каналов, но поддерживается наименьшим количеством устройств
 - Все виды VPLS не предоставляют расширенных возможностей L3, за исключением банального добавления BVI/IRB интерфейса в VPLS домен для inter vlan routing, в следствии чего, на оборудовании \(зависит от реализации\) выполняется больше операций lookup и возможен не оптимальный packet flow
 - MAC-адреса изучаются исключительно на уровне data plane, что приводит к увеличению флуда BUM трафика в сети
 - re-learn и частичная потеря трафика во время VMotion
@@ -30,7 +26,7 @@ EVPN использует новое BGP NLRI именуемое EVPN NLRI. Эт
 - У EVPN нет разных типов, что облегчает понимание технологии, поиск и устранение неисправностей, а так же EVPN просто расширяется за счёт добавления новых [route types](http://bgphelp.com/2017/05/22/evpn-route-types/), но, при этом, не все route types и возможности EVPN поддерживаются разными производителями и/или аппаратными/программными платформами
 - EVPN предоставляет расширенные возможности для inter vlan routing, имеет оптимальный packet flow, большой набор возможностей для DCI
 - MAC-адреса изучаются на уровне control plane \(представьте себе поведение L3VPN, только не по отношению к IP-адресам, а к MAC-адресам\), это позволяет получить оптимальный packet flow и уменьшить BUM трафик в сети
-- В 18.4 появилась поддержка [_VMTO_](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html), что позволяет оптимизировать входящий трафик на шлюз по умолчанию во время VMotion
+- В 18.4 появилась поддержка [VMTO](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html), что позволяет оптимизировать входящий трафик на шлюз по умолчанию во время VMotion
 
 ## Чем хорош EVPN MH, почему именно A/A и причём тут L3VPN
 
@@ -50,7 +46,7 @@ EVPN использует новое BGP NLRI именуемое EVPN NLRI. Эт
 Начиная с 18.4 при использовании EVPN MH A/A + L3VPN:
 - В 18.4 добавили [Multihomed Proxy MAC and IP Address Route Advertisement](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html#jd0e651), что в совокупности с VMTO и не хитрой политикой позволило анонсировать EVPN route type 2 MAC+IP и L3VPN host prefix со всех PE маршрутизаторов той площадки, на которой были изучены EVPN route type 2 MAC+IP в напрямую подключенном ES
 
-Данный сценарий был проверен с успешным результатом на оборудовании Juniper MX204 18.4R1-S1, Huawei NE20E-S2F VRP8 V800R010 и не успешным на ASR9001 6.4.2/6.3.3 \(совместно с Cisco TAC\).
+Данный сценарий был проверен с успешным результатом на оборудовании Juniper MX204 18.4R1-S1.
 
 ## Пример конфигурации
 
