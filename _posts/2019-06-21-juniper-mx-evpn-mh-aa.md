@@ -44,9 +44,13 @@ EVPN использует новое BGP NLRI именуемое EVPN NLRI. Эт
 - EVPN route type 2 MAC+IP анонсировались со всех PE за ES, но, при этом, в L3VPN host prefix \(на Juniper по умолчанию при добавлении интерфейса IRB в EVPN RI и VRF RI импортируются префиксы из EVPN route type 2 MAC+IP в VRF как /32 префиксы\) анонсировались только с того PE маршрутизатора, который был выбран DF \(EVPN route type 2 MAC+IP изучаются в напрямую подключенном ES при получении ARP\), что в свою очередь не позволяло сделать честный A/A для всего трафика за этот ES
 
 Начиная с 18.4 при использовании EVPN MH A/A + L3VPN:
-- В 18.4 добавили [Multihomed Proxy MAC and IP Address Route Advertisement](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html#jd0e651), что в совокупности с VMTO и не хитрой политикой позволило анонсировать EVPN route type 2 MAC+IP и L3VPN host prefix со всех PE маршрутизаторов той площадки, на которой были изучены EVPN route type 2 MAC+IP в напрямую подключенном ES
+- В 18.4 добавили [Multihomed Proxy MAC and IP Address Route Advertisement](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html#jd0e651), что в совокупности с VMTO и нехитрой политикой позволило анонсировать EVPN route type 2 MAC+IP и L3VPN host prefix со всех PE маршрутизаторов той площадки, на которой были изучены EVPN route type 2 MAC+IP в напрямую подключенном ES
 
 Данный сценарий был проверен с успешным результатом на оборудовании Juniper MX204 18.4R1-S1.
+
+## Топология
+
+![Topology](/images/juniper-mx-evpn-mh-aa-topology.png)
 
 ## Пример конфигурации
 
