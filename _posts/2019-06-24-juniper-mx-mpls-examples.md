@@ -5,7 +5,7 @@ tags: juniper mpls uhp
 author: "ipotech"
 ---
 
-"Дампы mpls пакетов при разных сценариях настройки между back-to-back маршрутизаторами Juniper MX"
+Дампы MPLS пакетов при разных сценариях настройки между back-to-back маршрутизаторами Juniper MX
 
 ## Постановка вопроса
 Имеем два Juniper MX, которые соединены друг с другом, то есть back-to-back (b2b).
@@ -18,19 +18,19 @@ author: "ipotech"
 explicit-null по сути задумывался как раз для того чтобы оставить MPLS заголовок, например для CoS.
 
 ### explicit-null
-Как я уже писал выше, не смотря на то, что в конфигурации указано
+Как я уже писал выше, не смотря на то, что в конфигурации указано:
 ```
 show configuration protocols mpls explicit-null
 explicit-null;
 ```
-В дампе видно только сервисную метку
+В дампе видно только сервисную метку:
 ![explicit-php](/images/explicit-b2b-php.png)
 
-Выход использорвать UHP
+Выход - использовать UHP
 ### UHP
 В режиме UHP транспортная метка есть всегда и она не нулевая.
 Так же между Juniper MX можно поднять несколько параллельных UHP LSP, тем самым добавить вариативности.
-Пример конфигурации
+Пример конфигурации:
 ```
 show configuration protocols mpls
 apply-groups mpls-lsp;
@@ -67,11 +67,12 @@ interface ae1.322;
 interface ae5.352;
 ```
 
-ниже дамп
+ниже дамп:
+
 ![explicit-uhp](/images/uhp-b2b.png)
 
 ### UHP + EL
-Раз у нас есть две метки, то грех не вставить еще одну для еще большей вариативности... подумал я, но
+Раз у нас есть две метки, то грех не вставить еще одну для еще большей вариативности, подумал я, но:
 ```
 admin@mx80-all# show protocols mpls label-switched-path lsp-to-a2-97 | display set
 set protocols mpls label-switched-path lsp-to-a2-97 to 10.191.107.46
@@ -82,7 +83,7 @@ admin@mx80-all# commit check
   'label-switched-path lsp-to-a2-97'
     entropy-label unsupported for UHP LSP
 ```
-В коммунити высказали такую версию
+В сообществе высказали такую версию:
 ```
 там есть два варианта как жить с el , один из них подразумевает что el должна быть попнута на PHP
 и джун на данный момент поддерживает именно такой вариант
