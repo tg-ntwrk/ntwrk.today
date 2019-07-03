@@ -59,78 +59,96 @@ EVPN использует новое BGP NLRI именуемое EVPN NLRI. Эт
 _Меня попросили для ясности описать почему использовались те или иные команды в конфигурации. Я опишу в комментариях к конфигурации часть важных на мой взгляд команд. Для всего остального рекомендую воспользоваться [CLI Explorer](https://apps.juniper.net/cli-explorer/)_
 
 ```
+groups {
+    interface-evpn-all-active { ## for compressed configuration view
+        interfaces {
+            <*> {
+                unit <*> {
+                    encapsulation vlan-bridge;
+                    esi { ## vESI - MUST for better user experience and manual interface statement
+                        auto-derive {
+                            lacp; ## autoderive ESI from LACP system-id
+                        }
+                        all-active;
+                    }
+                }
+            }
+        }
+    }
+}
+system {
+    host-name pe1;
+    no-redirects;
+    arp { ## host routes depends on ARP, choose your setup
+        aging-timer 5;
+        passive-learning;
+        purging;
+        gratuitous-arp-on-ifup;
+        gratuitous-arp-delay 3;
+    }
+}
 chassis {
     aggregated-devices {
         ethernet {
             device-count 1;
         }
     }
-    network-services enhanced-ip; ## MUST
+    network-services enhanced-ip; ## MUST, system restart required
 }
 interfaces {
-    xe-0/1/0 {
-        description -to-P-router-MX480-6-;
-        unit 0 {
-            family inet {
-                address 11.2.0.1/30;
-            }
-        }
-    }
-    xe-0/1/1 {
-        apply-groups-except isis-mpls;
-        description -to-CE-EX9200-1-;
+    ge-0/0/3 {
         ether-options {
             802.3ad ae0;
         }
     }
     ae0 {
-        description -LAG-to-CE-;
         flexible-vlan-tagging;
         encapsulation flexible-ethernet-services;
-        esi {
-            00:00:00:00:00:00:00:00:11:11; ## MUST manual (method 3) or can be auto-derive from lacp system-id
-            all-active;
-        }
         aggregated-ether-options {
             lacp {
                 active;
                 periodic fast;
-                system-id 00:00:00:1a:c0:02; ## MUST be and MUST be same on BOTH (or more) PE per ethernet segment
+                system-id 0a:00:00:01:01:01; ## MUST be and MUST be same on BOTH (or more) PE per ethernet segment
             }
         }
-        unit 200 {
-            encapsulation vlan-bridge;
-            vlan-id 200;
-        }
-        unit 201 {
-            encapsulation vlan-bridge;
-            vlan-id 201;
+        unit 500 {
+            apply-groups interface-evpn-all-active;
+            vlan-id 500;
         }
     }
     irb {
-        unit 200 {
+        unit 500 {
             family inet {
-                address 200.0.1.1/16;
+                address 10.10.10.254/24;
             }
-            mac 00:00:02:00:01:01;
-        }
-        unit 201 {
-            family inet {
-                address 201.0.1.1/16;
-            }
-            mac 00:00:02:01:01:01;
         }
     }
     lo0 {
         unit 0 {
+            description "GRT";
             family inet {
-                address 1.1.1.1/32;
+                address 10.100.0.1/32;
             }
         }
     }
 }
 forwarding-options {
+    load-balance {
+        indexed-load-balance;
+        per-flow {
+            hash-seed;
+        }
+    }
     hash-key {
+        family inet {
+            layer-3;
+            layer-4;
+        }
+        family mpls {
+            label-1;
+            label-2;
+            label-3;
+        }
         family multiservice {
             payload {
                 ip {
@@ -139,36 +157,102 @@ forwarding-options {
             }
         }
     }
+    enhanced-hash-key {
+        family inet {
+            incoming-interface-index;
+        }
+        family mpls {
+            incoming-interface-index;
+        }
+        family multiservice {
+            incoming-interface-index;
+        }
+    }
+}
+policy-options {
+    policy-statement pfe_lbl {
+        term 1 {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    policy-statement vrfx_export {
+        term vip-000 {
+            from {
+                route-filter 10.10.10.1/32 exact;
+                route-filter 10.10.10.2/32 exact;
+            }
+            then {
+                community add vrfx-vip-000; ## for legacy load balancers and his vip address for export to l3vpn-only clients
+                community add vrfx;
+                accept;
+            }
+        }
+        term other {
+            then {
+                community add vrfx;
+                accept;
+            }
+        }
+    }
+    policy-statement vrfx_import {
+        term vip-000 {
+            from community vrfx-vip-000;
+            then accept;
+        }
+        term other {
+            from community vrfx;
+            then accept;
+        }
+    }
+    community vrfx members target:65000:100;
+    community vrfx-vip-000 members target:65000:100030000;
+}
+routing-instances {
+    EVPN_vlan_500 {
+        instance-type evpn;
+        vlan-id 500;
+        interface ae0.500;
+        routing-interface irb.500;
+        route-distinguisher 10.100.0.1:65500;
+        vrf-target target:37283:601010500;
+        protocols {
+            evpn {
+                default-gateway do-not-advertise; ## MUST for distributed IRB and anycast GW
+            }
+        }
+    }
+    L3VPN_for_EVPN_vlan_500 {
+        instance-type vrf;
+        interface irb.500;
+        route-distinguisher 10.100.0.1:500;
+        vrf-import vrfx_import;
+        vrf-export vrfx_export;
+        vrf-table-label;
+    }
 }
 routing-options {
-    router-id 1.1.1.1;
-    autonomous-system 100;
+    router-id 10.100.0.1;
+    autonomous-system 65000;
     forwarding-table {
-        export lbpp; ## MUST
+        export pfe_lbl; ## MUST
         dynamic-list-next-hop; ## HIGHLY RECOMMENDED for better convergence time
+        ecmp-fast-reroute; ## HIGHLY RECOMMENDED for better convergence time
+        chained-composite-next-hop {
+            ingress {
+                evpn;
+                l3vpn;
+            }
+        }
     }
 }
 protocols {
-    rsvp {
-        interface xe-0/1/0.0 {
-            link-protection; ## HIGHLY RECOMMENDED for better convergence time
-        }
-    }
-    mpls {
-        label-switched-path lsp-R1-1-to-R1-2 {
-            from 1.1.1.1;
-            to 1.1.2.2;
-        }
-		label-switched-path lsp-R1-1-to-R3 {
-            from 1.1.1.1;
-            to 3.3.3.3;
-        }
-        interface xe-0/1/0.0;
-    }
     bgp {
-        group Internal {
+        multipath; ## MUST in A/A scheme
+        group internal {
             type internal;
-            local-address 1.1.1.1;
+            local-address 10.100.0.1;
             family inet-vpn {
                 unicast;
             }
@@ -176,118 +260,17 @@ protocols {
                 signaling;
             }
             family route-target; ## RECOMMENDED for better memory utilization
-            multipath; ## MUST in A/A scheme
-            neighbor 2.2.2.2;
+            peer-as 65000;
+            local-as 65000;
+            neighbor 10.100.0.101;
+            neighbor 10.100.0.102;
+        }
+        multipath-build-priority {
+            low;
         }
     }
-    ospf {
-        traffic-engineering;
-        area 0.0.0.0 {
-            interface xe-0/1/0.0 {
-                interface-type p2p;
-            }
-            interface lo0.0 {
-                passive;
-            }
-        }
-    }
-    ldp {
-        interface xe-0/1/0.0 {
-            link-protection; ## HIGHLY RECOMMENDED for better convergence time
-        }
-        session-protection; ## HIGHLY RECOMMENDED for better convergence time
-    }
-    lldp {
-        interface all;
-        interface fxp0 {
-            disable;
-        }
-    }
-}
-policy-options {
-    policy-statement IP-VPN-ADD-COMM {
-        term Balancer-host-route {
-            from {
-                route-filter 200.0.1.10/32 exact;
-            }
-            then {
-                community add COMM-L3VPN-Clients;
-                community add COMM-EVPN-Site-1;
-                community add COMM-IPVPN-EVPN;
-                accept;
-            }
-        }
-        term EVPN-routes {
-            from {
-                route-filter 200.0.0.0/16 prefix-length-range /32-/32;
-                route-filter 201.0.0.0/16 prefix-length-range /32-/32;
-            }
-            then {
-                community add COMM-EVPN-Site-1;
-                community add COMM-IPVPN-EVPN;
-                accept;
-            }
-        }
-        term All-other {
-            then accept;
-        }
-    }
-    policy-statement IP-VPN-DISCARD-EVPN {
-        term Discard-EVPN-Redundand {
-            from community COMM-EVPN-Site-1;
-            then reject;
-        }
-        term Accept-IpVPN-from-Site-3 {
-            from community COMM-IPVPN-EVPN;
-            then accept;
-        }
-        term Accept-L3VPN-Clients {
-            from community COMM-L3VPN-Clients;
-            then accept;
-        }
-    }
-    policy-statement lbpp {
-        then {
-            load-balance per-packet;
-        }
-    }
-    community COMM-EVPN-Site-1 members target:2:1234;
-    community COMM-IPVPN-EVPN members target:2:400;
-    community COMM-L3VPN-Clients members target:3:300;
-}
-routing-instances {
-    EVPN_vlan_200 {
-        instance-type evpn;
-        vlan-id 200;
-        interface ae0.200;
-        routing-interface irb.200;
-        route-distinguisher 1.1.1.1:200;
-        vrf-target target:2:200;
-        protocols {
-            evpn {
-                default-gateway do-not-advertise; ## MUST for distributed IRB and anycast GW
-            }
-        }
-    }
-    EVPN_vlan_201 {
-        instance-type evpn;
-        vlan-id 201;
-        interface ae0.201;
-        routing-interface irb.201;
-        route-distinguisher 1.1.1.1:201;
-        vrf-target target:2:201;
-        protocols {
-            evpn;
-        }
-    }
-    L3VPN_for_EVPN {
-        instance-type vrf;
-        interface irb.200;
-        interface irb.201;
-        route-distinguisher 1.1.1.1:300;
-        vrf-import IP-VPN-DISCARD-EVPN;
-        vrf-export IP-VPN-ADD-COMM;
-        vrf-table-label;
+    evpn {
+        remote-ip-host-routes; ## HIGHLY RECOMMENDED for better convergence time
     }
 }
 ```
