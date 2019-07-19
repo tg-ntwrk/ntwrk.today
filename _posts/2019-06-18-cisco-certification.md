@@ -5,7 +5,7 @@ tags: cisco certification
 author: "zhenyatsk"
 ---
 
-О грядущих изменениях в сертификацию Cisco
+О грядущих изменениях в сертификации Cisco
 
 ## Общая информация
 
@@ -13,7 +13,7 @@ author: "zhenyatsk"
 
 Основные изменения:
 * Новый трек DevNet для разработчиков, DevOps и специалистов по автоматизации;
-- Убраны все пререквизиты на уровне Associate и Professional. Теперь возможно получить CCNP, не сдавая CCNA экзамен. Ранее такой был возможен только с CCIE;
+- Убраны все пререквизиты на уровне Associate и Professional. Теперь возможно получить CCNP, не сдавая CCNA экзамен. Ранее такое было возможно только с CCIE;
 * Обновлен CCNA. Убрано разделение на Routing and Switching / Cloud / Collaboration / Cyber Ops / Data Center / Security / SP / Wireless / CCDA и Industrial;
 * Обновлены [правила](https://www.cisco.com/c/en/us/training-events/training-certifications/recertification-policy.html)<sup id="a1">[1](#f1)</sup> ресертификации. Будет нельзя сдать любой экзамен на выбор из ветки Professional, как было ранее;
 * Во все экзамены добавлены темы про автоматизацию.
