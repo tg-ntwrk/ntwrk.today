@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Конфигурация оборудования Huawei BNG"
-tags: BNG huawei edsg
+tags: bng huawei edsg
 author: "riddler63"
 ---
 
