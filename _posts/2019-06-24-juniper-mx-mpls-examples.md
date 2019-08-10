@@ -19,7 +19,7 @@ author: "ipotech"
 show configuration protocols mpls explicit-null
 explicit-null;
 ```
-В дампе видно только сервисную м етку:
+В дампе видно только сервисную метку:
 ![explicit-php](/images/explicit-b2b-php.png)
 
 ### UHP
