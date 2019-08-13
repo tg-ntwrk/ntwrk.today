@@ -276,7 +276,7 @@ policy-options {
         }
         term dci {
             from {
-                # Для сохранения оптимального роутинга между DC GW и разными VRF, если не используется VMTO с CNH.
+                # Для сохранения оптимального роутинга между DC GW и разными VRF.
                 route-filter 10.50.50.0/24 prefix-length-range /32-/32;
             }
             then {
@@ -393,7 +393,9 @@ routing-instances {
     evpn-vlan-3550 {
         protocols {
             evpn {
-                remote-ip-host-routes
+                remote-ip-host-routes {
+                    mpls-use-cnh;
+                }
             }
         }
     }
