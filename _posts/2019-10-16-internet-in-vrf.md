@@ -12,7 +12,7 @@ Internet in VRF vs Internet in GRT comparison
 Here is a comparison table for "Internet in VRF" and "Internet in GRT" options 
 
 | Property/Issue      | Internet in VRF | Internet in GRT | Summary | 
-| ------------- | -------------   |-----------------|-------| 
+|-----------------|-----------------|-----------------|-----------------| 
 | BGP Free Core                                 | Out of the box    | Have to use MPLS and /30 - /32 MPLS label allocation                | VRF is better. Less action required for VRF | 
 | Prefix visibility at PE                       | Using unique RD per PE or BGP [ADD-PATH](https://tools.ietf.org/html/rfc7911) for VPNv4 and/or VPNv6 | Using BGP [ADD-PATH](https://tools.ietf.org/html/rfc7911)                | Unique RD is out off the box functionality. No additional features required. | 
 | Optimal path selection regardless of RR hierarchy  | Using unique RD per PE (increases RIB memory consumption) or [BGP Optimal Route Reflection](https://tools.ietf.org/html/draft-ietf-idr-bgp-optimal-route-reflection-19) for VPNv4/VPNv6  | Using BGP [ADD-PATH](https://tools.ietf.org/html/rfc7911) (increases RIB memory consumption) or  [BGP Optimal Route Reflection](https://tools.ietf.org/html/draft-ietf-idr-bgp-optimal-route-reflection-19) | It depends. Unique RD might be better solution, until PE has scarce RIB resources | 
