@@ -33,7 +33,7 @@ Here is a comparison table for "Internet in VRF" and "Internet in GRT" options
 | BGP convergence time | RTC/RTF will affect BGP convergence time | BGP ORF can affect BGP convergence time |
 | Events to trigger BGP convergence | BGP events only (might be not fast enough). | BGP and IGP events (if NH address propagated via IGP)|
 | BGP features | Vendors might have scarce feature set for BGP in VRF | Most of the BGP features will work in GRT |
-| MPLS label allocation | Per Prefix - not enough MPLS labels; Per PE in VRF -> additional IP Lookup is needed on PE | Per Prefix - not enough MPLS labels; Per next-hop/interface |
+| MPLS label allocation | Per Prefix - not enough MPLS labels; Per NH/CE -> MPLS labels quantity depends on NH/CE quantity; Per PE in VRF -> additional IP Lookup is needed on PE | Per Prefix - not enough MPLS labels; Per NH/interface -> MPLS labels quantity depends on number of NH/interfaces |
 
 Additional Links:
 
