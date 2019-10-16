@@ -5,8 +5,7 @@ tags: Internet BGP FullView VRF GRT
 author: "riddler63"
 ---
 
-
-## Internet in VRF vs Internet in GRT(inet.0) comparison
+Internet in VRF vs Internet in GRT(inet.0) comparison
 
 > **Disclaimer**: Isn't complete list of Pros and Cons.
 
