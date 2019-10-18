@@ -180,7 +180,7 @@ protocols {
     mpls {
         statistics {
             file auto-bw size 10m;
-            interval 10;
+            interval 60;
             auto-bandwidth;
             transit-statistics-polling;
             traffic-class-statistics;
@@ -203,8 +203,8 @@ protocols {
                 adjust-threshold 10;
                 minimum-bandwidth 1k;
                 maximum-bandwidth 8500000000;
-                adjust-threshold-overflow-limit 30;
-                adjust-threshold-underflow-limit 30;
+                adjust-threshold-overflow-limit 5;
+                adjust-threshold-underflow-limit 5;
                 resignal-minimum-bandwidth;
             }
         }
