@@ -12,7 +12,7 @@ Therefore, let's start.
 ## Installation
 
 ### BGP Scanner
-First you need to install [bgpscanner](https://www.isolario.it/web_content/php/site_content/tools.php)<sup id="a1">[1](#f1)</sup> utility from [Isolario](https://www.isolario.it/)<sup id="a2">[2](#f2)</sup> project.
+First you need to install [bgpscanner](https://www.isolario.it/web_content/php/site_content/tools.php) <sup id="a1">[1](#f1)</sup> utility from [Isolario](https://www.isolario.it/) <sup id="a2">[2](#f2)</sup> project.
 #### Installing from packages
 Please pay attention that our destination OS is Ubuntu/Debian.
 ```bash
@@ -39,7 +39,7 @@ RUN ninja
 RUN cp -f /root/bgpscanner/build/bgpscanner /opt/
 RUN cp -f /root/bgpscanner/build/./subprojects/isocore/libisocore.so /opt/
 ```
-Run `docker build` command to build a temporary image that will hold compiled `bgpscanner` and [libisocore.so](https://gitlab.com/Isolario/isocore)<sup id="a3">[3](#f3)</sup> binaries:
+Run `docker build` command to build a temporary image that will hold compiled `bgpscanner` and [libisocore.so](https://gitlab.com/Isolario/isocore) <sup id="a3">[3](#f3)</sup> binaries:
 ```
 $ docker build --force-rm -t bgpscnr bgpscnr/
 Sending build context to Docker daemon   2.56kB
@@ -113,7 +113,7 @@ $ sudo pip3 install flashtext
 ```
 
 ### Python script
-Clone [bogons_ASNS](https://github.com/freefd/bogon_ASNs)<sup id="a6">[6](#f6)</sup> repository:
+Clone [bogons_ASNS](https://github.com/freefd/bogon_ASNs) <sup id="a6">[6](#f6)</sup> repository:
 ```bash
 $ git clone https://github.com/freefd/bogon_ASNs
 Cloning into 'bogon_ASNs'...
@@ -130,8 +130,8 @@ $ cd bogon_ASNs/
 ```
 
 ### RIS Raw Data
-Actually, RIS files are contain data in MRT format what is described in [RFC6396](https://tools.ietf.org/html/rfc6396)<sup id="a7">[7](#f7)</sup>. 
-Download a latest [RIS Raw Data](http://data.ris.ripe.net/rrc00/)<sup id="a8">[8](#f8)</sup> snapshot:
+Actually, RIS files are contain data in MRT format what is described in [RFC6396](https://tools.ietf.org/html/rfc6396) <sup id="a7">[7](#f7)</sup>. 
+Download a latest [RIS Raw Data](http://data.ris.ripe.net/rrc00/) <sup id="a8">[8](#f8)</sup> snapshot:
 ```bash
 $ wget http://data.ris.ripe.net/rrc00/latest-bview.gz
 ```
@@ -175,14 +175,14 @@ $ bgpscanner -p ' 55410 ' latest-bview.gz | awk -F'|' '{print $3"|"$2}' | sort -
 The example above will return only records contained AS55410 in AS path. More information about filtering you can find at the References below<sup id="a9">[9](#f9)</sup>.
 
 ## References
-<b id="f1">1</b>. BGP Scanner: [https://gitlab.com/Isolario/bgpscanner](https://gitlab.com/Isolario/bgpscanner) [↩](#a1)<br/>
-<b id="f2">2</b>. Isolario Project: [https://gitlab.com/Isolario/isocore](https://gitlab.com/Isolario/isocore) [↩](#a2)<br/>
-<b id="f3">3</b>. Isocore: [https://gitlab.com/Isolario/isocore](https://gitlab.com/Isolario/isocore) [↩](#a3)<br/>
-<b id="f4">4</b>. FlashText algorithm: [https://arxiv.org/pdf/1711.00046.pdf](https://arxiv.org/pdf/1711.00046.pdf) [↩](#a4)<br/>
-<b id="f5">5</b>. FlashText python module documentation: [https://flashtext.readthedocs.io/en/latest/](https://flashtext.readthedocs.io/en/latest/) [↩](#a5)<br/>
-<b id="f6">6</b>. Bogons ASNs Repository: [https://github.com/freefd/bogon_ASNs](https://github.com/freefd/bogon_ASNs) [↩](#a6)<br/>
-<b id="f7">7</b>. RFC6396: [https://tools.ietf.org/html/rfc6396](https://tools.ietf.org/html/rfc6396) [↩](#a7)<br/>
-<b id="f8">8</b>. RIS Raw Data: [https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/ris-raw-data](https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/ris-raw-data) [↩](#a8)<br/>
+<b id="f1">1</b>. [BGP Scanner](https://gitlab.com/Isolario/bgpscanner) [↩](#a1)<br/>
+<b id="f2">2</b>. [Isolario Project](https://gitlab.com/Isolario/isocore) [↩](#a2)<br/>
+<b id="f3">3</b>. [Isocore](https://gitlab.com/Isolario/isocore) [↩](#a3)<br/>
+<b id="f4">4</b>. [FlashText algorithm](https://arxiv.org/pdf/1711.00046.pdf) [↩](#a4)<br/>
+<b id="f5">5</b>. [FlashText python module documentation](https://flashtext.readthedocs.io/en/latest/) [↩](#a5)<br/>
+<b id="f6">6</b>. [Bogons ASNs Repository](https://github.com/freefd/bogon_ASNs) [↩](#a6)<br/>
+<b id="f7">7</b>. [RFC6396](https://tools.ietf.org/html/rfc6396) [↩](#a7)<br/>
+<b id="f8">8</b>. [RIS Raw Data](https://www.ripe.net/analyse/internet-measurements/routing-information-service-ris/ris-raw-data) [↩](#a8)<br/>
 <b id="f9">9</b>. About bgpscanner filtering options: [↩](#a9)
 * [https://gitlab.com/Isolario/bgpscanner/wikis/Home#filtering](https://gitlab.com/Isolario/bgpscanner/wikis/Home#filtering)
 * [https://ripe77.ripe.net/presentations/12-pres.pdf#page=20](https://ripe77.ripe.net/presentations/12-pres.pdf#page=20) (page 20)

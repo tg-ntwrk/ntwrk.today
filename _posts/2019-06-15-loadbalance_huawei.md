@@ -87,14 +87,14 @@ author: "riddler63"
 
 Использование хитрых и ресурсоемких возможностей оборудования для балансировки однотипного трафика не всегда оправдано, при возможности желательно вносить хаос в MPLS label stack. На данный момент существует два RFC, позволяющих это реализовать:
 
-1. [Flow-Aware Transport of Pseudowires over an MPLS Packet Switched Network](https://tools.ietf.org/html/rfc6391)<sup id="a1">[1](#f1)</sup> - на NE40E реализовано для Martini L2VPN (VLL/VPLS);
+1. [Flow-Aware Transport of Pseudowires over an MPLS Packet Switched Network](https://tools.ietf.org/html/rfc6391) <sup id="a1">[1](#f1)</sup> - на NE40E реализовано для Martini L2VPN (VLL/VPLS);
    * Плюсы
       * Поддержка необходима только на Ingress PE и/или Egress PE;
       * Можно включать по-сервисно;
       * Добавляет всего одну метку в MPLS label stack.
    * Минусы
       * Не может быть использован для L3VPN/EVPN;
-1. [The Use of Entropy Labels in MPLS Forwarding](https://tools.ietf.org/html/rfc6790)<sup id="a2">[2](#f2)</sup>;
+1. [The Use of Entropy Labels in MPLS Forwarding](https://tools.ietf.org/html/rfc6790) <sup id="a2">[2](#f2)</sup>;
    * Плюсы
       * Подходит для всех типов сервисов L2VPN/L3VPN/EVPN и так далее;
    * Минусы
