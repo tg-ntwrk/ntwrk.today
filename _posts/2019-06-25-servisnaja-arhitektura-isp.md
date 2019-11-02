@@ -34,7 +34,7 @@ author: "ipotech"
 
 Классические варианты предлагают строить север-юг сети с помощью STP или MPLS. Оба решения имеют минусы и не готовы к подходам реализации сетей для SDN/NFV.
 
-Предлагается рассмотреть сеть как один большой "датацентр", где площадки соединены в топологию CLOS. К похожему выводу приходит в своей [статье](http://karneliuk.com/2019/01/sp-part-3-automated-service-provider-fabric-with-arista-cisco-nokia-and-ansible/) Антон Карнелюк. Также ONF советует строить современные сети по принципу _The CORD (Central Office Re-architected as a Datacenter)_ [opencord](https://www.opennetworking.org/cord/).
+Предлагается рассмотреть сеть как один большой "датацентр", где площадки соединены в топологию CLOS. К похожему выводу приходит в своей [статье](http://karneliuk.com/2019/01/sp-part-3-automated-service-provider-fabric-with-arista-cisco-nokia-and-ansible/) <sup id="a1">[1](#f1)</sup> Антон Карнелюк. Также ONF советует строить современные сети по принципу _The CORD (Central Office Re-architected as a Datacenter)_ [opencord](https://www.opennetworking.org/cord/) <sup id="a2">[2](#f2)</sup>.
 
 В современном мире датацентры строят с использованием EVPN/VXLAN. Это позволяет распределять оборудование бренда и узлов Compute на любых площадках, а задача транспортной сети в предоставлении им связи L2 и L3.
 
@@ -61,8 +61,7 @@ author: "ipotech"
 
 VTEP распределен по двум LEAF свичам площадки. Для обеспечения резервирования используется MLAG в сторону CE. Для обеспечения работы MLAG между LEAF свичами организован служебный линк. В норме по этому линку передаются только служебные сообщения, трафик данных попадает туда только для Single Home CE подключений, например при аварии CE-LEAF линка.
 
-Балансировка на линках LEAF-SPINE происходит по хэшу -3 заголовка от VTEP с ECMP.
-И вот тут есть особенности и вероятно ограничения. Смотри [тут](/_posts/2019-06-24-juniper-mx-mpls-examples.md).
+Балансировка на линках LEAF-SPINE происходит по хэшу -3 заголовка от VTEP с ECMP. Но есть особенности и ограничения: [подробней](/2019/06/24/juniper-mx-mpls-examples.html).
 
 ### Виртуальный распределенный маршрутизатор
 LEAF оборудование транспортной сети выступает в роли PE маршрутизатора для терминирования IPv4 и IPv6 подсетей ВМ и контейнеров. Терминирование происходит в L3 EVPN инстанс с Symmetric IRB. Для обеспечения связности между сервисными маршрутизаторами бренда, маршрутизаторами терминации и LEAF можно, например, организовать BGP option A стык для каждого VRF. Для обеспечения безопасности на интерфейсах LEAF оборудования конфигурируются ACL по L2-L4 заголовкам.
@@ -72,5 +71,6 @@ LEAF оборудование транспортной сети выступае
 IP фабрика маршрутизирует PIM в Underlay.
 
 ## Ссылки
-- https://www.opennetworking.org/cord/
-- http://karneliuk.com/2019/01/sp-part-3-automated-service-provider-fabric-with-arista-cisco-nokia-and-ansible/
+<b id="f1">1</b>. [SP. Part 3. Automated Service Provider Fabric with Arista, Cisco, Nokia and Ansible](http://karneliuk.com/2019/01/sp-part-3-automated-service-provider-fabric-with-arista-cisco-nokia-and-ansible/) [↩](#a1)<br/>
+<b id="f2">2</b>. [Central Office Re-architected as a Datacenter](https://www.opennetworking.org/cord/) [↩](#a2)<br/>
+

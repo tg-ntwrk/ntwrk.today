@@ -23,14 +23,14 @@ EVPN использует новое BGP NLRI, именуемое EVPN NLRI. Э�
 - В сценарии MH для каждого Ethernet Segment \(далее ES\) возможно использовать
   - Active/Standby \(A/S\);
   - Active/Active \(A/A\);
-- У EVPN нет разных типов, что облегчает понимание технологии, поиск и устранение неисправностей, а также EVPN легко расширяется за счёт добавления новых [Route Types](http://bgphelp.com/2017/05/22/evpn-route-types/), но не все Route Types и возможности EVPN поддерживаются разными производителями и/или аппаратными/программными платформами;
+- У EVPN нет разных типов, что облегчает понимание технологии, поиск и устранение неисправностей, а также EVPN легко расширяется за счёт добавления новых [Route Types](http://bgphelp.com/2017/05/22/evpn-route-types/) <sup id="a1">[1](#f1)</sup>, но не все Route Types и возможности EVPN поддерживаются разными производителями и/или аппаратными/программными платформами;
 - EVPN предоставляет расширенные возможности для Inter VLAN Routing, имеет оптимальный Packet Flow и большой набор возможностей для DCI;
 - MAC-адреса изучаются на уровне Control Plane \(поведение больше похоже на L3VPN, только не по отношению к IP-адресам, а к MAC-адресам\), это позволяет получить оптимальный Packet Flow и уменьшить BUM трафик в сети;
-- В Junos OS 18.4 появилась поддержка [VMTO](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html), что позволяет оптимизировать входящий трафик на шлюз по умолчанию из WAN во время VMotion. Достигается это \(в идеальном примере\) средствами [composite next hop](https://habr.com/ru/post/324268/).
+- В Junos OS 18.4 появилась поддержка [VMTO](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html) <sup id="a2">[2](#f2)</sup>, что позволяет оптимизировать входящий трафик на шлюз по умолчанию из WAN во время VMotion. Достигается это \(в идеальном примере\) средствами [composite next hop](https://habr.com/ru/post/324268/) <sup id="a3">[3](#f3)</sup>.
 
 ## Чем хорош EVPN MH, почему именно A/A и причём тут L3VPN
 
-Чтобы не быть переводчиком, рекомендую прочитать [RFC](https://tools.ietf.org/html/rfc7432) и [реализацию Juniper](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html), а русскоязычным пользователям для более детального ознакомления [статью на habr](https://habr.com/ru/post/316792/).
+Чтобы не быть переводчиком, рекомендую прочитать [RFC](https://tools.ietf.org/html/rfc7432) <sup id="a4">[4](#f4)</sup> и [реализацию Juniper](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html) <sup id="a5">[5](#f5)</sup>, а русскоязычным пользователям для более детального ознакомления [статью на habr](https://habr.com/ru/post/316792/) <sup id="a6">[6](#f6)</sup>.
 
 Краткое описание:
 
@@ -44,7 +44,7 @@ EVPN использует новое BGP NLRI, именуемое EVPN NLRI. Э�
 - EVPN route type 2 MAC+IP анонсировались со всех PE за ES, но в L3VPN Host Prefix \(на Juniper по умолчанию при добавлении интерфейса IRB в EVPN RI и VRF RI импортируются префиксы из EVPN Route Type 2 MAC+IP в VRF как /32 префиксы\) анонсировались только с того PE маршрутизатора, на котором первым был изучен ARP \(EVPN Route Type 2 MAC+IP изучаются в напрямую подключенном ES при получении ARP\), что, в свою очередь, не позволяло сделать A/A для всего входящего L3VPN-only трафика из WAN за этот ES.
 
 Начиная с Junos OS 18.4 при использовании EVPN MH A/A + L3VPN:
-- Добавили [Multihomed Proxy MAC and IP Address Route Advertisement](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html#jd0e651), что позволило анонсировать EVPN Route Type 2 MAC+IP и L3VPN Host Prefix со всех PE маршрутизаторов той площадки, на которой были изучены EVPN Route Type 2 MAC+IP в напрямую подключенном ES. Опционально можно добавить VMTO и нехитрую политику \(политику по желанию\).
+- Добавили [Multihomed Proxy MAC and IP Address Route Advertisement](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html#jd0e651) <sup id="a7">[7](#f7)</sup>, что позволило анонсировать EVPN Route Type 2 MAC+IP и L3VPN Host Prefix со всех PE маршрутизаторов той площадки, на которой были изучены EVPN Route Type 2 MAC+IP в напрямую подключенном ES. Опционально можно добавить VMTO и нехитрую политику \(политику по желанию\).
 
 Данный сценарий был проверен с успешным результатом на оборудовании Juniper MX204 18.4R2 и на данный момент используется в производстве.
 
@@ -403,14 +403,16 @@ routing-instances {
 ```
 
 ## Ссылки
-<b id="f1">1</b>. BGP MPLS-Based Ethernet VPN: [https://tools.ietf.org/html/rfc7432](https://tools.ietf.org/html/rfc7432) [↩](#a1)<br/>
-<b id="f2">2</b>. EVPN Multihoming Overview: [https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html) [↩](#a2)<br/>
-<b id="f3">3</b>. Understanding Automatically Generated ESIs in EVPN Networks: [https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-auto-esi.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-auto-esi.html) [↩](#a3)<br/>
-<b id="f4">4</b>. Configuring Dynamic List Next Hop: [https://www.juniper.net/documentation/en_US/junos/topics/concept/configuring-dynamic-list.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/configuring-dynamic-list.html) [↩](#a4)<br/>
-<b id="f5">5</b>. Understanding BGP Route Prioritization: [https://www.juniper.net/documentation/en_US/junos/topics/concept/bgp-route-prioritization-overview.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/bgp-route-prioritization-overview.html) [↩](#a5)<br/>
-<b id="f6">6</b>. Сети для самых матёрых. Микровыпуск №7. EVPN: [https://habr.com/ru/post/316792/](https://habr.com/ru/post/316792/) [↩](#a6)<br/>
-<b id="f7">7</b>. Proxy IP->MAC Advertisement in EVPNs: [https://tools.ietf.org/html/draft-rbickhart-evpn-ip-mac-proxy-adv-00](https://tools.ietf.org/html/draft-rbickhart-evpn-ip-mac-proxy-adv-00) [↩](#a7)<br/>
-<b id="f8">8</b>. Ingress Virtual Machine Traffic Optimization: [https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html) [↩](#a8)<br/>
-<b id="f9">9</b>. EVPN Route Types: [http://bgphelp.com/2017/05/22/evpn-route-types/](http://bgphelp.com/2017/05/22/evpn-route-types/) [↩](#a9)<br/>
-<b id="f10">10</b>. Multiprotocol Extensions for BGP-4: [https://tools.ietf.org/html/rfc4760](https://tools.ietf.org/html/rfc4760) [↩](#a10)<br/>
-<b id="f11">11</b>. Composite next hop: [https://habr.com/ru/post/324268](https://habr.com/ru/post/324268) [↩](#a11)<br/>
+<b id="f1">1</b>. [EVPN Route Types](http://bgphelp.com/2017/05/22/evpn-route-types/) [↩](#a1)<br/>
+<b id="f2">2</b>. [Ingress Virtual Machine Traffic Optimization](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-ingress-vmto.html) [↩](#a2)<br/>
+<b id="f3">3</b>. [Composite next hop](https://habr.com/ru/post/324268) [↩](#a3)<br/>
+<b id="f4">4</b>. [BGP MPLS-Based Ethernet VPN](https://tools.ietf.org/html/rfc7432) [↩](#a4)<br/>
+<b id="f5">5</b>. [EVPN Multihoming Overview](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html) [↩](#a5)<br/>
+* <b id="f7"></b> [Multihomed Proxy MAC and IP Address Route Advertisement](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-bgp-multihoming-overview.html#jd0e651) [↩](#a7)
+* [Proxy IP->MAC Advertisement in EVPNs](https://tools.ietf.org/html/draft-rbickhart-evpn-ip-mac-proxy-adv-00)<br/>
+
+<b id="f6">6</b>. [Сети для самых матёрых. Микровыпуск №7. EVPN](https://habr.com/ru/post/316792/) [↩](#a6)<br/>
+<b>7</b>. [Understanding Automatically Generated ESIs in EVPN Networks](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-auto-esi.html)<br/>
+<b>8</b>. [Configuring Dynamic List Next Hop](https://www.juniper.net/documentation/en_US/junos/topics/concept/configuring-dynamic-list.html)<br/>
+<b>9</b>. [Understanding BGP Route Prioritization](https://www.juniper.net/documentation/en_US/junos/topics/concept/bgp-route-prioritization-overview.html)<br/>
+<b>10</b>. [Multiprotocol Extensions for BGP-4](https://tools.ietf.org/html/rfc4760)<br/>

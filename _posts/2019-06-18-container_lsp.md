@@ -11,13 +11,13 @@ author: "somovis"
 
 Проблемы, из-за которых был придуман cLSP \(TE++\):
 
-- **В сетях с отсутствием TE контроллера** существует [проблема bin-packing](https://www.ietf.org/proceedings/82/slides/pce-11.pdf), которая происходит из-за отсутствия на ingress маршрутизаторе информации об отдельных LSP и пропускной способности для каждого узла сети \(нет централизованного и полного видения состояния сети и всех её элементов, как на TE контроллере\). Конечно есть setup и hold приоритеты, но они работают ровно до того момента, пока не попадутся LSP с одинаковыми приоритетами и на транзитном маршрутизаторе не будет хватать пропускной способности
+- **В сетях с отсутствием TE контроллера** существует [проблема bin-packing](https://www.ietf.org/proceedings/82/slides/pce-11.pdf) <sup id="a1">[1](#f1)</sup>, которая происходит из-за отсутствия на ingress маршрутизаторе информации об отдельных LSP и пропускной способности для каждого узла сети \(нет централизованного и полного видения состояния сети и всех её элементов, как на TE контроллере\). Конечно есть setup и hold приоритеты, но они работают ровно до того момента, пока не попадутся LSP с одинаковыми приоритетами и на транзитном маршрутизаторе не будет хватать пропускной способности
 - Относительная сложность реализации ECMP
 - Относительная сложность конфигурации
 
 Решения проблем, которые предлагает cLSP \(TE++\):
 
-- bin-packing - вместо того, чтобы сигнализировать один "толстый" LSP, маршрутизатор, с учетом текущей топологии и утилизации каналов, обсчитывает и сигнализирует несколько менее требовательных к полосе путей. В [draft](https://tools.ietf.org/html/draft-kompella-mpls-rsvp-ecmp-00) они называются sub-LSPs
+- bin-packing - вместо того, чтобы сигнализировать один "толстый" LSP, маршрутизатор, с учетом текущей топологии и утилизации каналов, обсчитывает и сигнализирует несколько менее требовательных к полосе путей. В [draft](https://tools.ietf.org/html/draft-kompella-mpls-rsvp-ecmp-00) <sup id="a2">[2](#f2)</sup> они называются sub-LSPs
 - ECMP - sub-LSPs используются для балансировки. Каждый sub-LSP может использовать отличный путь к тому же egress маршрутизатору. Доступные для выбора методы балансировки по LSP \(единовременно возможен только один вариант\):
   - random
   - least-fill
@@ -37,12 +37,12 @@ author: "somovis"
 
 ## Реализация Container LSP
 
-Чтобы не быть переводчиком, рекомендую прочитать [документацию про реализацию](https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html#jd0e505) Container LSP, а русскоязычным пользователям для более детального ознакомления [статью на habr](https://habr.com/ru/company/senetsy/blog/327456/).
+Чтобы не быть переводчиком, рекомендую прочитать [документацию про реализацию](https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html#jd0e505) <sup id="a3">[3](#f3)</sup> Container LSP, а русскоязычным пользователям для более детального ознакомления [статью на habr](https://habr.com/ru/company/senetsy/blog/327456/) <sup id="a4">[4](#f4)</sup>.
 
 Краткое описание:
 
 Container LSP создаёт sub-LSPs основываясь на вводных параметрах + локальной статистике.
-Например, есть номинальные 2 sub-LSPs в контейнере с min bw 1g, max bw 8g, так же указывается, что надо делать splitting \(добавление sub-LSP\(s\) при достижении и/или преодолении указанного параметра в splitting-bandwidth\) с функцией sampling, учитывая один из возможных [алгоритмов](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/sampling-edit-protocols-mpls-container-label-switched-path-splitting-merging.html) за период нормализации, например, при достижении и/или преодолении 5g sampling average aggregate.
+Например, есть номинальные 2 sub-LSPs в контейнере с min bw 1g, max bw 8g, так же указывается, что надо делать splitting \(добавление sub-LSP\(s\) при достижении и/или преодолении указанного параметра в splitting-bandwidth\) с функцией sampling, учитывая один из возможных [алгоритмов](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/sampling-edit-protocols-mpls-container-label-switched-path-splitting-merging.html) <sup id="a5">[5](#f5)</sup> за период нормализации, например, при достижении и/или преодолении 5g sampling average aggregate.
 При достижении и/или преодолении sampling average aggregate в течении периода нормализации добавится ещё sub-LSP\(s\)*n, с такими-же параметрами \(sub-LSPs наследуют настройки контейнера и во время нормализации происходит распределение bw между всеми sub-LSPs принадлежащими к этому контейнеру\), и будет участвовать в ECMP.
 
 - LSP splitting - механизм разделения \(splitting\) LSP позволяет ingress маршрутизатору создавать новые sub-LSPs или повторно сигнализировать существующие LSP с различной полосой пропускания в контейнерном LSP, когда требование X помещается в контейнерный LSP. В текущей реализации ingress маршрутизатор пытается найти LSP, удовлетворяющий требованию X и другим ограничениям. Если путь не найден - либо LSP не сигнализируется, либо остается включенным, но со старой зарезервированной полосой пропускания. Между двумя событиями нормализации (расщепление или слияние) отдельные LSP могут повторно сигнализироваться с различной пропускной способностью из-за настроек auto-bw. Если контейнерный LSP не сконфигурирован с auto-bw, то sub-LSPs сигнализируются со статическим значением полосы пропускания, если настроено, в таком случае динамического разделения не происходит, так как отсутствует динамическая оценка совокупной полосы пропускания \(aggregate utilization\). Настройки разделения с определенным значением пропускной способности могут быть инициированы вручную.
@@ -70,7 +70,7 @@ Container LSP создаёт sub-LSPs основываясь на вводных
 
 ## Пример конфигурации
 
-_Меня попросили для ясности описать почему использовались те или иные команды в конфигурации. Я опишу в комментариях к конфигурации часть команд не относящихся к данной статье. Для всего остального рекомендую воспользоваться [CLI Explorer](https://apps.juniper.net/cli-explorer/)_
+_Меня попросили для ясности описать почему использовались те или иные команды в конфигурации. Я опишу в комментариях к конфигурации часть команд не относящихся к данной статье. Для всего остального рекомендую воспользоваться [CLI Explorer](https://apps.juniper.net/cli-explorer/)_ <sup id="a6">[6](#f6)</sup>
 
 ```
 groups {
@@ -257,7 +257,8 @@ policy-options {
 ```
 
 ## Ссылки
-<b id="f1">1</b>. Dynamic Bandwidth Management Using Container LSP Overview: [https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html](https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html) [↩](#a1)<br/>
-<b id="f2">2</b>. Multi-path Label Switched Paths Signaled Using RSVP-TE: [https://tools.ietf.org/html/draft-kompella-mpls-rsvp-ecmp-00](https://tools.ietf.org/html/draft-kompella-mpls-rsvp-ecmp-00) [↩](#a2)<br/>
-<b id="f3">3</b>. Container LSP: [https://m.habr.com/ru/company/senetsy/blog/327456/](https://m.habr.com/ru/company/senetsy/blog/327456/) [↩](#a3)<br/>
-<b id="f4">4</b>. bin-packing problem: [https://www.ietf.org/proceedings/82/slides/pce-11.pdf](https://www.ietf.org/proceedings/82/slides/pce-11.pdf) [↩](#a4)<br/>
+<b id="f1">1</b>. [Traffic Engineering for the Modern MPLS Backbone](https://www.ietf.org/proceedings/82/slides/pce-11.pdf) [↩](#a1)<br/>
+<b id="f2">2</b>. [Multi-path Label Switched Paths Signaled Using RSVP-TE](https://tools.ietf.org/html/draft-kompella-mpls-rsvp-ecmp-00) [↩](#a2)<br/>
+<b id="f3">3</b>. [Junos OS Container LSP Implementation](https://www.juniper.net/documentation/en_US/junos/topics/concept/dynamic-bandwidth-management-overview.html#jd0e505) [↩](#a3)<br/>
+<b id="f4">4</b>. [Container LSP](https://habr.com/ru/company/senetsy/blog/327456/) [↩](#a4)<br/>
+<b id="f5">5</b>. [Sampling Protocols MPLS](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/sampling-edit-protocols-mpls-container-label-switched-path-splitting-merging.html) [↩](#a5)<br/>

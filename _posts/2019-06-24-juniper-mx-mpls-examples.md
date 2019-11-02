@@ -77,7 +77,7 @@ admin@mx80-all# commit check
   'label-switched-path lsp-to-a2-97'
     entropy-label unsupported for UHP LSP
 ```
-Сообществе высказывает следующую версию:
+Сообщество высказывает следующую версию:
 ```
 Eсть два варианта, как жить с EL. Один из них подразумевает, что EL должна быть "попнута" на PHP,
 и Juniper на данный момент поддерживает именно такой вариант.
@@ -86,6 +86,6 @@ Eсть два варианта, как жить с EL. Один из них п�
 ```
 
 ## Ссылки
-1. Статья про UHP на сайте Juniper https://www.juniper.net/documentation/en_US/junos/topics/task/configuration/mpls-ultimate-hop-popping-enabling.html
-2. Включение explicit-null на сайт Juniper https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/explicit-null-edit-protocols-mpls.html
-3. Различие explicit-null и implicit-null https://www.networkworld.com/article/2350466/understanding-mpls-explicit-and-implicit-null-labels.html
+1. [Configuring Ultimate-Hop Popping for LSPs](https://www.juniper.net/documentation/en_US/junos/topics/task/configuration/mpls-ultimate-hop-popping-enabling.html)
+2. [Explicit-null Protocols MPLS](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/explicit-null-edit-protocols-mpls.html)
+3. [Understanding MPLS Explicit and Implicit Null Labels](https://www.networkworld.com/article/2350466/understanding-mpls-explicit-and-implicit-null-labels.html)
