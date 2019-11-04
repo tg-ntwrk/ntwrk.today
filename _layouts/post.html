@@ -3,8 +3,30 @@ layout: default
 ---
 <h1>{{ page.title }}</h1>
 <p>
+  {% comment %}
+    You could use "author" tag with a predefined list of resources: github, fb, twitter and vk
+    The record "github:username" will be converted into "https://github.com/username"
+
+    The same applies to other allowed resources in the list. All other possible prefixes will be
+    ignored and the link will be generated as "https://t.me/text".
+  {% endcomment %}
+
   {{ page.date | date_to_string }}
+  {% if page.author %}
+    {% assign sites = "github,fb,twitter,vk" | split: ',' %}
+    {% for site in sites %}
+        {% assign current_site = page.author | split: ':' | first %}
+        {% if current_site == site %}
+            {% assign matched = true %}
+            {% break %}
+        {% endif %}
+    {% endfor %}
+    {% if matched %}
+    - <a target="_blank" href="https://{{ current_site }}.com/{{ page.author | split: ':' | last }}">{{ page.author | split: ':' | last }}</a>
+    {% else %}
     - <a target="_blank" href="https://t.me/{{ page.author }}">{{ page.author }}</a>
+    {% endif %}
+  {% endif %}
 </p>
 
 {{ content }}
