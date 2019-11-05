@@ -182,35 +182,66 @@ And rerun our graph plotting:
     0 +--------------------------------------------------------------------------------------------------------------------------------------+   
      1968    1971    1974    1977    1980    1983    1986    1989    1992   1995    1998    2001    2004    2007    2010    2013    2016    2019
 ```
-Now it looks nice. The same for months where we see the expected deviations for July and November/December, the most productivity release dates are in March/April:
+Now it looks nice. For months statistics we see the expected deviations for July and November/December, the most productivity release dates are in March/April:
 ```bash
-~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%m" | sort -n | uniq -c | awk '{print $2" "$1}' | gnuplot -e "set term dumb size 145, 25; set xtics 1; plot '-' with lines notitle smooth csplines"
+~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%m" | sort -n | uniq -c | awk '{print $2" "$1}' | gnuplot -e "set term dumb size 145, 25; set xtics 1; set ytics 40; plot '-' notitle smooth csplines"
 
                                                                                                                                                  
-  850 +--------------------------------------------------------------------------------------------------------------------------------------+   
+  840 +--------------------------------------------------------------------------------------------------------------------------------------+   
       |           +            +           +           +           +            +           +           +           +            +           |   
-      |                                                                                                                                      |   
-  800 |-+                     *********                                                                                                    +-|   
-      |                    ***         **                                                                                                    |   
+      |                       *********                                                                                                      |   
+  800 |-+                  ***         **                                                                                                  +-|   
       |                   *              ***                                                                                                 |   
-      |                  *                  ***               *****                         ****                   *                         |   
-  750 |-+              **                      ***       *****     **                     **    ***             *** ***                    +-|   
-      |               *                           *******            *                   *         *           *       **                    |   
-      |              *                                                *                 *           *        **          *                   |   
-  700 |****       ***                                                  *               *             **    **             *                +-|   
-      |    *******                                                      *             *                ****               *                  |   
-      |                                                                  *           *                                     *                 |   
-      |                                                                   **         *                                      *                |   
-  650 |-+                                                                   *      **                                        *             +-|   
-      |                                                                      *    *                                           *              |   
-      |                                                                      *****                                            *              |   
-  600 |-+                                                                                                                      **          +-|   
-      |                                                                                                                          *           |   
-      |                                                                                                                           *          |   
-      |           +            +           +           +           +            +           +           +           +            + **        |   
-  550 +--------------------------------------------------------------------------------------------------------------------------------------+   
+  760 |-+                *                  ***             *******                         ****                   *                       +-|   
+      |                **                      ***       ***       ***                    **    ***             *** ***                      |   
+      |               *                           *******             *                  *         *           *       **                    |   
+  720 |**          ***                                                *                **           *       ***          *                 +-|   
+      |  ****    **                                                    **             *              *** ***              *                  |   
+  680 |-+    ****                                                        *            *                 *                  *               +-|   
+      |                                                                   *          *                                     **                |   
+      |                                                                   **       **                                        *               |   
+  640 |-+                                                                   *     *                                           *            +-|   
+      |                                                                      *** *                                            *              |   
+      |                                                                         *                                              *             |   
+  600 |-+                                                                                                                       *          +-|   
+      |                                                                                                                          **          |   
+  560 |-+                                                                                                                          **      +-|   
+      |                                                                                                                              ********|   
+      |           +            +           +           +           +            +           +           +           +            +           |   
+  520 +--------------------------------------------------------------------------------------------------------------------------------------+   
       1           2            3           4           5           6            7           8           9           10           11          12
 ```
+
+Moreover, we can plot the same graph for [IETF](https://ietf.org/) <sup id="a12">[12](#f12)</sup> [Internet-Drafts](https://www.ietf.org/standards/ids/) <sup id="a13">[13](#f13)</sup> to realize how rapidly their numbers are growing:
+```bash
+~> curl -s http://mirror.funkfreundelandshut.de/ietf/internet-drafts/all_id.txt | awk '/^draft/{print $2}' | xargs -I {} env TZ=Europe/London date -d'{}' +"%Y-%m" | sort -n | uniq -c | awk '{print $2" "$1}' | gnuplot -e "set term dumb size 145, 25; set xtics 2; set ytics 20; plot '-' notitle smooth csplines"
+
+                                                                                                                                                 
+  500 +--------------------------------------------------------------------------------------------------------------------------------------+   
+  480 |-+     +        +       +        +       +        +       +        +       +       +        +       +        +       +        +     +-|   
+  460 |-+                                                                                                                                  +-|   
+  440 |-+                                                                                                                                  +-|   
+  400 |-+                                                                                                                                  +-|   
+  380 |-+                                                                                                                                  +-|   
+  360 |-+                                                                                                                                  +-|   
+  340 |-+                                                                                                                                  +-|   
+  320 |-+                                                                                                                                  +-|   
+  280 |-+                                                                                                                                  +-|   
+  260 |-+                                                                                                                                  +-|   
+  240 |-+                                                                                                                                  +-|   
+  220 |-+                                                                                                                                * +-|   
+  200 |-+                                                                                                                               *  +-|   
+  160 |-+                                                                                                                              *   +-|   
+  140 |-+                                                     ****                                 *************************          *    +-|   
+  120 |-+                                                  ***    *********************      ******                         *****    *     +-|   
+  100 |-+                                            ******                            ******                                    ****      +-|   
+   80 |-+                                     *******                                                                                      +-|   
+   40 |-+                              *******                                                                                             +-|   
+   20 |-+     +        +*************** +       +        +       +        +       +       +        +       +        +       +        +     +-|   
+    0 +--------------------------------------------------------------------------------------------------------------------------------------+   
+     1988    1990     1992    1994     1996    1998     2000    2002     2004    2006    2008     2010    2012     2014    2016     2018    2020
+```
+
 
 ## References
 <b id="f1">1</b>. [RFC Editor](https://www.rfc-editor.org/) [↩](#a1)<br/>
@@ -224,3 +255,5 @@ Now it looks nice. The same for months where we see the expected deviations for 
 <b id="f9">9</b>. [uniq - report or filter out repeated lines](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/uniq.html) [↩](#a9)<br/>
 <b id="f10">10</b>. [gnuplot - portable command-line driven graphing utility](http://www.gnuplot.info/) [↩](#a10)<br/>
 <b id="f11">11</b>. [gnuplot documentation](http://www.bersch.net/gnuplot-doc/gnuplot.html) [↩](#a11)<br/>
+<b id="f12">12</b>. [Internet Engineering Task Force](https://ietf.org/) [↩](#a12)<br/>
+<b id="f13">13</b>. [Internet-Drafts](https://www.ietf.org/standards/ids/) [↩](#a13)<br/>
