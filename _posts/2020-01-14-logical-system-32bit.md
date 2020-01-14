@@ -1,20 +1,17 @@
 ---
 layout: post
 title:  "Juniper в дефолте поднимет LS в 32bit режиме"
-tags: juniper ls
+tags: juniper ls 32bit
 author: "ipotech"
 ---
 
-Ниже заметка напоминание для информирования в ru комьюнити. Тем кто не в курсе (с)
+## Routing process daemon в Logical System в Junos Network Operating System
 
-## Суть
-> **для logical-system по умолчанию запускается rpd процесс скомпиленый для 32bit , соответственно у этого процесса ограничение по памяти в 3+GB**
+В cовременных Junos OS для Logical System по умолчанию запускается 32bit _rpd_ процесс. Соответственно, у этого процесса присутствует фактическое ограничение на адресацию более 3 и более GB RAM. Даже если сетевое оборудование Juniper Networks использует Routing Engine с 32 или более GB RAM в паре с 64bit Junos OS, во всех логических системах все равно будет запущен _rpd_ для 32bit архитектуры.
 
-То есть, даже если у вас в MX уставлена современная RE с 32GB памяти и вы имеете на борту 64bit Junos, то во всех логических системах все равно будет развернута 32bit скомпилированная копия.
 ![32-64-bit](/images/32-64-bit-juniper.jpg)
-Путем проб и ребутов :) мы пришли к тому что при 10М маршрутов rpd в LS рестартует при commit любого конфига.
-## Настройка 64bit
-Настройка отлично описана в официальной документации [тут](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/routing-edit-system-processes.html)
+В процессе экспериментов было обнаружено, что при 10M маршрутов _rpd_ в Logical System перезапускается при commit любой конфигурации.
 
-**ВНИМАНИЕ**</br>
-При commit этой настройки произойдет рестарт RPD в LS.
+Настройка 64bit rpd описана в официальной [документации](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/routing-edit-system-processes.html).
+
+> **ВНИМАНИЕ**: При commit этих настроек произойдет перезапуск _rpd_ в Logical System.
