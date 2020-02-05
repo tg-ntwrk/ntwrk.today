@@ -22,11 +22,11 @@ layout: default
         {% endif %}
     {% endfor %}
     {% if matched %}
-    - <a target="_blank" href="https://{{ current_site }}.com/{{ page.author | split: ':' | last }}">{{ page.author | split: ':' | last }}</a>
+    - <a target="_blank" href="https://{{ current_site }}.com/{{ page.author | split: ':' | last }}">{{ page.author | split: ':' | last }}</a> 
     {% else %}
-    - <a target="_blank" href="https://t.me/{{ page.author }}">{{ page.author }}</a>
+    - <a target="_blank" href="https://t.me/{{ page.author }}">{{ page.author }}</a> 
     {% endif %}
   {% endif %}
 </p>
-
+{% include share-buttons.html %}
 {{ content }}
