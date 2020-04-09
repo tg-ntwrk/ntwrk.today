@@ -256,7 +256,7 @@ if __name__ == '__main__':
 
 ## Final script
 
-Below you can find the final script that build a Plantuml file.
+Below you can find the [final script](https://github.com/freefd/utils/blob/master/telegram_graph.py) <sup id="a11">[11](#f11)</sup> that build a Plantuml file.
 
 ```python
 #!/usr/bin/env python3
@@ -278,7 +278,7 @@ config = {
     },
     'graph': {
         'channels_ignore': [], # Channels to ignore
-        'color': { # Colors for nodes (https://plantuml.com/en/color for more information) [11]
+        'color': { # Colors for nodes (https://plantuml.com/en/color for more information) [12]
             'client': 'gold',
             'channel': 'technology',
             'user': 'lavender'
@@ -391,7 +391,7 @@ virusologbot 0--# 1470273900
 ```
 
 ## Graph visualization
-To tell the truth, in the beginning I wanted to make a visualization using classic [matplotlib.pyplot](https://matplotlib.org/api/pyplot_api.html) <sup id="a12">[12](#f12)</sup> library. But after a several tries to draw a well formed graph, I changed my mind and pick [Plantuml](https://plantuml.com/) <sup id="a3">[3](#f3)</sup> for visualization. It supports many topologies and cases, plenty image types as PNG, SVG and LaTeX for a graph output.
+To tell the truth, in the beginning I wanted to make a visualization using classic [matplotlib.pyplot](https://matplotlib.org/api/pyplot_api.html) <sup id="a13">[13](#f13)</sup> library. But after a several tries to draw a well formed graph, I changed my mind and pick [Plantuml](https://plantuml.com/) <sup id="a3">[3](#f3)</sup> for visualization. It supports many topologies and cases, plenty image types as PNG, SVG and LaTeX for a graph output.
 
 PlantUML limits image width and height to 4096, but there is PLANTUML_LIMIT_SIZE environment variable that we can set to override this limit during launch of Plantuml. Let's draw our graph we got at the previous chapter, by default Plantuml generates PNG image:
 
@@ -427,7 +427,7 @@ A little bit close-up the one piece:
 
 ## Bonus: CLI one-liner
 
-Following the previous [article](/2019/11/03/old-fashioned-way-about-data-science.html) we already learned that write code is not always necessary. Some cases could be solved in CLI only: [curl](https://curl.haxx.se/) <sup id="a13">[13](#f13)</sup> and [jq](https://stedolan.github.io/jq/) <sup id="a14">[14](#f14)</sup> do magic. For example, let us investigate how many channels use [Social Energy](https://segroup.me/en/) <sup id="a15">[15](#f15)</sup> agency (actually we also can do this [here](https://tg.segroup.me/en) <sup id="a16">[16](#f16)</sup>):
+Following the previous [article](/2019/11/03/old-fashioned-way-about-data-science.html) we already learned that write code is not always necessary. Some cases could be solved in CLI only: [curl](https://curl.haxx.se/) <sup id="a14">[14](#f14)</sup> and [jq](https://stedolan.github.io/jq/) <sup id="a15">[15](#f15)</sup> do magic. For example, let us investigate how many channels use [Social Energy](https://segroup.me/en/) <sup id="a16">[16](#f16)</sup> agency (actually we also can do this [here](https://tg.segroup.me/en) <sup id="a17">[17](#f17)</sup>):
 
 ```bash
 $ ( echo -e '@startuml\nleft to right direction\nusecase social_energy as "@social_energy" #lavender'; curl -sX POST https://tgstat.com/channels/list --data 'offset=0&period=yesterday&country=global&language=global&verified=0&price[vp]=0&search=@social_energy' | jq '.items.list[] | "frame \(.id) as \"\(.title)\" #technology\nsocial_energy -->> \(.id)"' -r | sort -V; echo "@enduml" ) | java -DPLANTUML_LIMIT_SIZE=8192 -jar /path/to/plantuml.jar -pipe > social_energy_telegram_graph.png
@@ -472,9 +472,10 @@ All this text is pipelined to Plantuml with _-pipe_ option and the result will b
 <b id="f9">9</b>. [Work with users, chats and channels
 in telethon](https://telethonn.readthedocs.io/en/latest/extra/basic/entities.html) [↩](#a9)<br/>
 <b id="f10">10</b>. [Get full channel info in telethon](https://tl.telethon.dev/methods/channels/get_full_channel.html) [↩](#a10)<br/>
-<b id="f11">11</b>. [Plantuml supported colors list](https://plantuml.com/en/color)<br/>
-<b id="f12">12</b>. [Python Matplotlib library](https://matplotlib.org/api/pyplot_api.html) [↩](#a12)<br/>
-<b id="f13">13</b>. [Command line tool for transferring data with URLs](https://curl.haxx.se/) [↩](#a13)<br/>
-<b id="f14">14</b>. [Lightweight and flexible command-line JSON processor](https://stedolan.github.io/jq/) [↩](#a14)<br/>
-<b id="f15">15</b>. [Social Energy platform](https://segroup.me/en/) [↩](#a15)<br/>
-<b id="f16">16</b>. [Social Enegry prices](https://tg.segroup.me/en) [↩](#a16)<br/>
+<b id="f11">11</b>. [telegram_graph.py at Github](https://github.com/freefd/utils/blob/master/telegram_graph.py) [↩](#a11)<br/>
+<b id="f12">12</b>. [Plantuml supported colors list](https://plantuml.com/en/color)<br/>
+<b id="f13">13</b>. [Python Matplotlib library](https://matplotlib.org/api/pyplot_api.html) [↩](#a13)<br/>
+<b id="f14">14</b>. [Command line tool for transferring data with URLs](https://curl.haxx.se/) [↩](#a14)<br/>
+<b id="f15">15</b>. [Lightweight and flexible command-line JSON processor](https://stedolan.github.io/jq/) [↩](#a15)<br/>
+<b id="f16">16</b>. [Social Energy platform](https://segroup.me/en/) [↩](#a16)<br/>
+<b id="f17">17</b>. [Social Enegry prices](https://tg.segroup.me/en) [↩](#a17)<br/>
