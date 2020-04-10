@@ -391,7 +391,7 @@ virusologbot 0--# 1470273900
 ```
 
 ## Graph visualization
-To tell the truth, in the beginning I wanted to make a visualization using classic [matplotlib.pyplot](https://matplotlib.org/api/pyplot_api.html) <sup id="a13">[13](#f13)</sup> library. But after a several tries to draw a well formed graph, I changed my mind and pick [Plantuml](https://plantuml.com/) <sup id="a3">[3](#f3)</sup> for visualization. It supports many topologies and cases, plenty image types as PNG, SVG and LaTeX for a graph output.
+To tell the truth, in the beginning I wanted to make a visualization using classic [matplotlib.pyplot](https://matplotlib.org/api/pyplot_api.html) <sup id="a13">[13](#f13)</sup> library. But after several tries to draw a well formed graph, I changed my mind and pick [Plantuml](https://plantuml.com/) <sup id="a3">[3](#f3)</sup> for visualization. It supports many topologies and cases, plenty image types as PNG, SVG and LaTeX for a graph output.
 
 PlantUML limits image width and height to 4096, but there is PLANTUML_LIMIT_SIZE environment variable that we can set to override this limit during launch of Plantuml. Let's draw our graph we got at the previous chapter, by default Plantuml generates PNG image:
 
