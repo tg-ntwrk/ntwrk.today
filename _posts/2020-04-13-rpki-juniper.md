@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "RPKI на Juniper MX"
-tags: juniper rpki cloudflare ripe rtr validator
+tags: juniper rpki cloudflare ripe gortr validator
 author: "slepwin"
 ---
 
