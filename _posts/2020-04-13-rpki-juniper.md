@@ -52,9 +52,9 @@ sudo systemctl daemon-reload
 sudo systemctl restart rpki-validator-3
 sudo systemctl restart rpki-rtr-server
 ```
-RPKI Validator 3.1 доступен по http://x.x.x.x:8080
-The RPKI-RTR Server доступен по tcp x.x.x.x:8323
-Проверить API http://x.x.x.x:8080/swagger-ui.html
+- RPKI Validator 3.1 доступен по http://x.x.x.x:8080
+- The RPKI-RTR Server доступен по tcp x.x.x.x:8323
+- Проверить API http://x.x.x.x:8080/swagger-ui.html
 
 4. Установка ARIN TAL (остальные Trust Anchors built-in):
 ```
