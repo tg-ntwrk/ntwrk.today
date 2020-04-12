@@ -7,7 +7,7 @@ author: "slepwin"
 
 RPKI на Juniper MX
 
-> **Disclaimer**: Все описанное в статье претендует на капитанство.
+> **Disclaimer**: В статье описывается How to по установке двух валидаторов и rtr серверов от RIPE и Cloudflare, а также конфигурация Juniper MX. Все описанное претендует на капитанство.
 
 ## Установка и настройка RIPE Validator + RTR server
 
