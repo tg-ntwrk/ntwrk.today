@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "RPKI инфрастурктура: RIPE Validator и RPKI-to-Router для Juniper MX"
+title: "RPKI инфраструктура: RIPE validator и RPKI-to-Router Protocol сервер для Juniper MX"
 tags: juniper rpki cloudflare ripe gortr validator
 author: "slepwin"
 ---
@@ -50,9 +50,9 @@ author: "slepwin"
     sudo systemctl restart rpki-validator-3 rpki-rtr-server
     ```
 
-    RPKI Validator 3.1 доступен по http://x.x.x.x:8080
-    RTR Server доступен по tcp x.x.x.x:8323
-    Проверить API можно по http://x.x.x.x:8080/swagger-ui.html
+    * RPKI Validator 3.1 должен быть доступен по [http://x.x.x.x:8080/](http://x.x.x.x:8080/)
+    * Проверить RPKI Validator API можно по [http://x.x.x.x:8080/swagger-ui.html](http://x.x.x.x:8080/swagger-ui.html)
+    * RTR Server должен быть доступен по tcp x.x.x.x:8323
 
 1. Установка ARIN TAL (остальные Trust Anchors встроены):
     ```bash
@@ -90,8 +90,7 @@ author: "slepwin"
 
 1. Настройка обоих сервисов:
 
-    - OctoRPKI
-    Создание файла сервиса systemd:
+    Создание файла сервиса systemd для [OctoRPKI](https://github.com/cloudflare/cfrpki) <sup id="a7">[7](#f7)</sup>:
     ```bash
     # Create OctoRPKI systemd service file
     sudo cat <<EOF > /etc/systemd/system/octorpki.service
@@ -117,7 +116,7 @@ author: "slepwin"
     EOF
     ```
 
-    - GoRTR
+    Создание файла сервиса systemd для [GoRTR](https://github.com/cloudflare/gortr) <sup id="a8">[8](#f8)</sup>:
     ```bash
     # Create GoRTR systemd service file
     sudo cat <<EOF > /etc/systemd/system/gortr.service
@@ -150,7 +149,7 @@ author: "slepwin"
     sudo systemctl daemon-reload
     ```
 
-1. Генерация пары ключей:
+1. Генерация пары ключей для [OctoRPKI](https://github.com/cloudflare/cfrpki) <sup id="a7">[7](#f7)</sup>:
     ```bash
     # Generate keypair for OctoRPKI
     sudo mkdir -p /opt/cfrpki/keys/
@@ -164,13 +163,13 @@ author: "slepwin"
     sudo wget https://www.arin.net/resources/manage/rpki/arin-rfc7730.tal -O /usr/share/octorpki/tals/arin-rfc7730.tal
     ```
 
-1. Установка в загрузку при старте операционной системы и запуск сервисов:
+1. Добавление в загрузку при старте операционной системы и запуск сервисов:
     ```bash
     # Enable services and run them
     sudo systemctl enable octorpki gortr
     sudo systemctl start octorpki gortr
     # Check both services are running
-    sudo systemctl start gortr
+    sudo systemctl is-active octorpki gortr
     ```
 
 1. Проверка работоспособности сервисов:
@@ -182,14 +181,14 @@ author: "slepwin"
 
 ### Настройка RPKI на Juniper MX:
 
-> **Примечание**: x.x.x.x - RIPE Validator, y.y.y.y - Cloudflare Validator, z.z.z.z - MX Router 1, b.b.b.b - MX Router 2. В качестве примера выступает Stub AS.
+> **Примечание**: x.x.x.x - RIPE Validator, y.y.y.y - Cloudflare Validator, a.a.a.a - Juniper MX Router 1, b.b.b.b - Juniper MX Router 2. В качестве примера выступает Stub AS.
 
 1. Конфигурация RPKI сессий:
     ```
     set routing-options validation group RPKI-SRV session x.x.x.x port 8323
-    set routing-options validation group RPKI-SRV session x.x.x.x local-address z.z.z.z
+    set routing-options validation group RPKI-SRV session x.x.x.x local-address a.a.a.a
     set routing-options validation group RPKI-SRV session y.y.y.y port 8323
-    set routing-options validation group RPKI-SRV session y.y.y.y local-address z.z.z.z
+    set routing-options validation group RPKI-SRV session y.y.y.y local-address a.a.a.a
     ```
 
 1. Конфигурация apply-path для PROTECT-RE фильтра:
@@ -260,7 +259,7 @@ author: "slepwin"
 1. Конфигурация IBGP соседа/RR:
     ```
     set protocols bgp group IBGP-RTR type internal
-    set protocols bgp group IBGP-RTR local-address z.z.z.z
+    set protocols bgp group IBGP-RTR local-address a.a.a.a
     set protocols bgp group IBGP-RTR import ACCEPT-RPKI-IBGP
     set protocols bgp group IBGP-RTR export ACCEPT-FV-IBGP
     set protocols bgp group IBGP-RTR neighbor b.b.b.b
