@@ -7,6 +7,8 @@ author: "slepwin"
 
 В статье описывается внедрение [RPKI](https://www.ripe.net/manage-ips-and-asns/resource-management/certification/what-is-rpki) <sup id="a1">[1](#f1)</sup> инфраструктуры на примере двух [RPKI Validator](https://www.ripe.net/manage-ips-and-asns/resource-management/certification/tools-and-resources) <sup id="a2">[2](#f2)</sup> и [RTR Server](https://rpki.readthedocs.io/en/latest/rpkivalidator3/#rpki-rtr-server) <sup id="a3">[3](#f3)</sup> от [RIPE NCC](https://www.ripe.net/) <sup id="a4">[4](#f4)</sup> и [Cloudflare](https://www.cloudflare.com/) <sup id="a5">[5](#f5)</sup> , а также соответствующая конфигурация Junos OS для Juniper MX.
 
+![RPKI-network-diagram](/images/2020-04-13-rpki-network-diagram.png)
+
 ## Установка и настройка RIPE Validator + RTR Server
 
 1. Установка из репозитория [RIPE NCC](https://www.ripe.net/) <sup id="a4">[4](#f4)</sup> для дистрибутивов на базе [RHEL](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux) <sup id="a6">[6](#f6)</sup>:
