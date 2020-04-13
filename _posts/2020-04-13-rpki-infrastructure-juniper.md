@@ -77,7 +77,7 @@ author: "slepwin"
 
 ### Установка и настройка Cloudflare OctoRPKI и GoRTR сервера
 
-1. Установка [OctoRPKI](https://github.com/cloudflare/cfrpki) <sup id="a7">[7](#f7)</sup> и [GoRTR](https://github.com/cloudflare/gortr) <sup id="a8">[8](#f8)</sup> для дистрибутивов на базе RHEL
+1. Установка [OctoRPKI](https://github.com/cloudflare/cfrpki) <sup id="a7">[7](#f7)</sup> и [GoRTR](https://github.com/cloudflare/gortr) <sup id="a8">[8](#f8)</sup> для дистрибутивов на базе [RHEL](https://www.redhat.com/en/technologies/linux-platforms/enterprise-linux) <sup id="a6">[6](#f6)</sup>:
     ```bash
     # Install curl and jq as they are support tools
     sudo yum update
@@ -85,7 +85,7 @@ author: "slepwin"
     # Install latest RPM packages for OctoRPKI and GoRTR
     sudo yum install $(for repo in cfrpki gortr; do curl -s https://api.github.com/repos/cloudflare/$repo/releases | jq 'first(.[].assets[] | select(.name | contains("rpm"))) | .browser_download_url' -r; done)
     ```
-    Где вложенная команда:
+    Где вложенная команда
     ```bash
     for repo in cfrpki gortr; do curl -s https://api.github.com/repos/cloudflare/$repo/releases | jq 'first(.[].assets[] | select(.name | contains("rpm"))) | .browser_download_url' -r; done
     ```
@@ -187,13 +187,13 @@ author: "slepwin"
 
 В качестве примера выступает Stub AS.
     
-* x.x.x.x - RIPE RTR server 
-* y.y.y.y - Cloudflare RTR server
-* a.a.a.a - Loopback IP on MX Router 1
-* b.b.b.b - Loopback IP on MX Router 2/RR
-* c.c.c.c - IP from Peering network MX Router 
-* d.d.d.d - IP from Peering network on Uplink Router (External AS)
-* YYYY - AS number on Uplink Router (External AS)
+* x.x.x.x - RIPE NCC RTR сервер
+* y.y.y.y - Cloudflare RTR сервер
+* a.a.a.a - Loopback IP на MX Router #1
+* b.b.b.b - Loopback IP на MX Router #2/RR
+* c.c.c.c - IP из Peering network MX Router 
+* d.d.d.d - IP из Peering network на Uplink Router (External AS)
+* YYYY - AS номер на Uplink Router (External AS)
 
 1. Конфигурация RPKI сессий:
     ```
