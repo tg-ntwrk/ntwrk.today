@@ -181,7 +181,14 @@ author: "slepwin"
 
 ### Настройка RPKI на Juniper MX:
 
-> **Примечание**: x.x.x.x - RIPE Validator, y.y.y.y - Cloudflare Validator, a.a.a.a - Loopback IP on MX Router 1, b.b.b.b - Loopback IP on MX Router 2/RR. c.c.c.c - Peering IP MX Router. d.d.d.d - Peering IP on External Router. В качестве примера выступает Stub AS.
+> **Примечание**: В качестве примера выступает Stub AS.
+    
+* x.x.x.x - RIPE RTR server 
+* y.y.y.y - Cloudflare RTR server
+* a.a.a.a - Loopback IP on MX Router 1
+* b.b.b.b - Loopback IP on MX Router 2/RR
+* c.c.c.c - IP from Peering network MX Router 
+* d.d.d.d - IP from Peering network on Uplink Router (External AS) 
 
 1. Конфигурация RPKI сессий:
     ```
