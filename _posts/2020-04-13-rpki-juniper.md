@@ -188,7 +188,8 @@ author: "slepwin"
 * a.a.a.a - Loopback IP on MX Router 1
 * b.b.b.b - Loopback IP on MX Router 2/RR
 * c.c.c.c - IP from Peering network MX Router 
-* d.d.d.d - IP from Peering network on Uplink Router (External AS) 
+* d.d.d.d - IP from Peering network on Uplink Router (External AS)
+* YYYY - AS number on Uplink Router (External AS)
 
 1. Конфигурация RPKI сессий:
     ```
