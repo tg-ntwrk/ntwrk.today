@@ -183,12 +183,12 @@ author: "slepwin"
 
 > **Примечание**: В качестве примера выступает Stub AS.
     
-* x.x.x.x - RIPE RTR server 
-* y.y.y.y - Cloudflare RTR server
-* a.a.a.a - Loopback IP on MX Router 1
-* b.b.b.b - Loopback IP on MX Router 2/RR
-* c.c.c.c - IP from Peering network MX Router 
-* d.d.d.d - IP from Peering network on Uplink Router (External AS) 
+    * x.x.x.x - RIPE RTR server 
+    * y.y.y.y - Cloudflare RTR server
+    * a.a.a.a - Loopback IP on MX Router 1
+    * b.b.b.b - Loopback IP on MX Router 2/RR
+    * c.c.c.c - IP from Peering network MX Router 
+    * d.d.d.d - IP from Peering network on Uplink Router (External AS) 
 
 1. Конфигурация RPKI сессий:
     ```
