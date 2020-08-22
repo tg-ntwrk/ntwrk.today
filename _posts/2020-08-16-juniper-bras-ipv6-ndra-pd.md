@@ -2,38 +2,49 @@
 layout: post
 title: "Конфигурирование Juniper BRAS для IPoE клиентов с оспользованием Dual Stack и NDRA-PD"
 tags: juniper bras ipv6 dual-stack ndra-pd ipoe
-author: "github:kmisak"
+author: "kmisak"
 ---
-
 
 Конфигурирование Juniper BRAS для IPoE клиентов с оспользованием Dual Stack и NDRA-PD
 
 ## Вместо предисловия
 
-IPv6 хоть и не так быстро как хотелось, но расширяет свое присутствие в Интернет, и рано или поздно сетевым инженерам интернет провайдеров придется озаботиться его конфигурированием на своем оборудовании. Являясь администратором довольно большой клиентской базы, подключенной по GPON, я довольно рано озаботился его внедрением и теперь хочу поделиться своим опытом и конечно конфигурацией.
+IPv6 продолжает расширять свое присутствие, рано или поздно сетевым инженерам интернет-провайдеров придется озаботиться его конфигурированием на оборудовании. Статья описывает опыт внедрения на большой абонентской базе, подключенной по [GPON](https://en.wikipedia.org/wiki/Passive_optical_network) <sup id="a1">[1](#f1)</sup>.
 
-## Немного о технологии доступа и принятых решениях:
+### Технологии и принятые решения:
 
-- /48 на клиента. Здесь учитывались рекомендации RIPE-690. Жадничать не стоит, это первое дело при внедрении IPv6, всегда надо смотреть в первую очередь на удобство администрирования, а не на экономию адресного пространства. Все привычки экономить, приобретенные за годы жизни с IPv4 надо пересматривать.
+Выделение /48 перифкса на клиента. Учитывались рекомендации [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) <sup id="a2">[2](#f2)</sup>, при исопльзовании IPv6 первично должно быть удобство администрирования, а не экономия адресного пространства.
 
-- /32 на BRAS для начала. У нас Juniper MX480, который официально поддерживает максимум 256К дуал стек сабскрайберов. Скорее всего вам не придется доходить до этих чисел на одном BRAS, поэтому будем брать адреса порциями по /32. Резервируем четыре /32, берем тот который последний для первых 64К клиентов, 64К /48 это /32. Следующий блок рядом с уже взятым - первый на очереди, когда исчерпается пул адресов. Тут конечно огромный простор для всевозможных техник выделения адресов, ориентируйтесь на то как это принято в своей организации. RIPE по умолчанию выделяет /32 для LIR, но вообще без разговоров дает /29, стоит только попросить. Это 16 /32 - должно хватить намного и надолго.
+Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделяются порциями по /32, это 64.000 пользователей. RIPE по умолчанию выделяет /32 для LIR, но можно попросить и /29, это 16 x /32.
 
-- Версия Junos сейчас в проде - 17.3R3-S3. Настоятельно рекомендуется версия, которая поддерживает dual-stack-group, тоесть начиная с 17.3R1, так как в противном случае IPv4 и IPv6 сессии каждого клиента будут считаться как две разные, что сразу приводит к излишним сложностям и на стороне биллинга, и с точки зрения использования ресурсов, а главное - сразу удваивается нужное количество лицензий, которые стоят денег.
+Стратегия выделения адресов:
+* Блоки адресов для инфраструктуры резервируются с начала выделенного адресного пространства;
+* Блоки адресов для клиентов резервируются с конца выделенного адресного пространства;
+* Если клиенту выделяется блок какого-либо размера, рядом резервируется дополнительный блок такого же размера, если клиенту в будущем понадобятся дополнительные адреса. Это удобно и с точки зрения агрегации, два меньших блока легко можно агрегировать в один, при этом адресация клиента не будет перемещаться по IP plan.
 
-- Самое главное решение и причина написания статьи - в начале была выбрана схема доступа DHCPv6 IA_NA and DHCPv6 Prefix Delegation, тоесть и адрес WAN интерфейса клиентского оборудования и выделяемый клиенту префикс раздавался DHCP сервером.
+  ![Addressing_sceme](/images/ipv6-addressing-scheme.png)
 
-- Схема как это все работает, c сайта Juniper:
+На момент написания статьи используемая на [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> версия [Junos® OS 17.3R3-S3](https://kb.juniper.net/InfoCenter/index?page=content&id=TSB17512&cat=&actp=LIST) <sup id="a5">[5](#f5)</sup>.
+
+> **Внимание**: Настоятельно рекомендуется версия с поддержкой [dual-stack-group](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> (начиная с [Junos® OS 17.3R1](https://www.juniper.net/documentation/en_US/junos/information-products/topic-collections/release-notes/17.3/junos-release-notes-17.3r1.pdf) <sup id="a7">[7](#f7)</sup>), иначе IPv4 и IPv6 сессии каждого клиента будут идентифицированы отдельно. Это приведёт к излишним сложностям как на стороне [BSS](https://en.wikipedia.org/wiki/Business_support_system) <sup id="a8">[8](#f8)</sup>, так и с точки зрения использования ресурсов, дополнительное удваивается требуемое количество лицензий.
+
+## DHCPv6 IA_NA, DHCPv6 Prefix Delegation
+
+Изначально была выбрана схема доступа [DHCPv6 IA_NA and DHCPv6 Prefix Delegation](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dhcpv6-iana-prefix-delegation-addressing.html) <sup id="a9">[9](#f9)</sup>, когда адрес [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейса [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> и выделяемый клиенту префикс раздаются DHCP сервером:
 
   ![IA_NA_PD](/images/IA_NA_PD.gif)
 
+### Junos® OS конфигурация
 
-Давайте посмотрим конфигурацию, я прокомментировал все важные вещи. Конфигурация из прода, изменены только имена, адреса, пароли заменены на хххх.
+Конфигурация [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> с использованием [DHCPv6 IA_NA and DHCPv6 Prefix Delegation](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dhcpv6-iana-prefix-delegation-addressing.html) <sup id="a9">[9](#f9)</sup>. Изменены имена, адреса, пароли замаскированы.
 
-```
+Блок общих настроек
+
+```ruby
 groups {
     arp-policer-64k {
-        #Juniper по умолчанию на каждом интерфейсе полисит arp трафик, при большом
-        #количестве клиентов надо полисер увеличивать, а то будут проблемы
+        # По умолчанию на каждом интерфейсе полисится ARP трафик, при большом
+        # количестве клиентов количество записей необходимо увеличить
         interfaces {
             <*> {
                 unit <*> {
@@ -54,56 +65,73 @@ system {
     dynamic-profile-options {
         versioning;
     }
-        dhcp-local-server {
-            dhcpv6 {
-                group DS_v6 {
-                    overrides {
-                        #пул делегированных адресов
-                        delegated-pool v6-prefix-delegation;
-                        #общая часть конфига IPv4 и IPv6 в дуал стек группе
-                        dual-stack DS;
-                    }
-                    interface ae1.106;
-                }
-            }
-            pool-match-order {
-                ip-address-first;
-            }
-            group DHCPv4 {
+}
+```
+
+Определена группа для использования ARP полисера на интерфейсе в сторону клиентов, так как полисер по умолчанию слишком строг для даже небольшого количества клиентов. Подробная статья про [особенности работы ARP в Junos® OS](2020-01-16-juniper-arp.md) <sup id="a12">[12](#f12)</sup>.
+
+В этом же блоке задается размер базы конфигурации и включается версионирование динамических профилей, большое подробностей об этом можно найти в документации [Versioning for Dynamic Profiles](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dynamic-profiles-versioning.html) <sup id="a13">[13](#f13)</sup>.
+
+Конфигурация сервисов DHCPv4, DHCPv6 и [Dual Stack группы](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup>, конфигурация процесса управления клиентами. [Dual Stack группы](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> удобны для выноса общих настроек в отдельный блок, создавая более читаемую конфигурацию:
+
+```ruby
+system {
+    dhcp-local-server {
+        dhcpv6 {
+            group DS_v6 {
                 overrides {
-                    #общая часть конфига IPv4 и IPv6 в дуал стек группе
+                    # Pool делегированных адресов
+                    delegated-pool v6-prefix-delegation;
+                    # Общая часть конфигурации IPv4 и IPv6 в Dual Stack группе
                     dual-stack DS;
                 }
                 interface ae1.106;
             }
-            dual-stack-group DS {
-                authentication {
-                    password xxxxx;
-                    username-include {
-                        #мы используем в качестве имени пользователя mac адрес
-                        mac-address;
-                    }
-                }
-                dynamic-profile user-profile-ds;
-                classification-key {
+        }
+        pool-match-order {
+            ip-address-first;
+        }
+        group DHCPv4 {
+            overrides {
+                # Общая часть конфигурации IPv4 и IPv6 в Dual Stack группе
+                dual-stack DS;
+            }
+            interface ae1.106;
+        }
+        dual-stack-group DS {
+            authentication {
+                password xxxxx;
+                username-include {
+                    # В качестве имени пользователя используется MAC адрес
                     mac-address;
                 }
-                #если клиент не авторизовался для IPv4 IPv6 сессия тоже считается неавторизованной
-                protocol-master inet;
             }
-        }
-        subscriber-management {
-            gres-route-flush-delay;
-            enforce-strict-scale-limit-license;
-            enable;
-        }
-    }
-    processes {
-        routing failover other-routing-engine;
-        dhcp-service {
-            failover other-routing-engine;
+            dynamic-profile user-profile-ds;
+            classification-key {
+                mac-address;
+            }
+            # Если клиент не авторизовался для IPv4,
+            # IPv6 сессия тоже считается неавторизованной
+            protocol-master inet;
         }
     }
+    subscriber-management {
+        gres-route-flush-delay;
+        enforce-strict-scale-limit-license;
+        enable;
+    }
+}
+processes {
+    routing failover other-routing-engine;
+    dhcp-service {
+        failover other-routing-engine;
+    }
+}
+```
+
+Динамический профиль:
+
+```ruby
 dynamic-profiles {
     user-profile-ds {
         routing-instances {
@@ -115,10 +143,14 @@ dynamic-profiles {
             demux0 {
                 unit "$junos-interface-unit" {
                     no-traps;
+                    # Proxy ARP для возможности клиентским CPE обнаруживать друг друга,
+                    # OLT по умолчанию изолируют клиентов друг от друга даже в пределах одного VLAN
                     proxy-arp;
                     demux-options {
                         underlying-interface "$junos-underlying-interface";
                     }
+                    # Если используются аггрегированные интерфейсы, это помогает относить каждого клиента
+                    # к одному их интерфейсов агрегата, иначе полисеры буду работать неправильно
                     targeted-distribution;
                     family inet {
                         rpf-check fail-filter RPF-ALLOW-DHCP;
@@ -140,7 +172,7 @@ dynamic-profiles {
         protocols {
             router-advertisement {
                 interface "$junos-interface-name" {
-                    #Использовать DHCPv6 для получения конфигурации адреса
+                    # Использование DHCPv6 для получения конфигурации адреса
                     managed-configuration;
                     other-stateful-configuration;
                 }
@@ -148,7 +180,10 @@ dynamic-profiles {
         }
     }
 }
-access-profile access;
+```
+
+Конфигурация интерфейсов:
+```ruby
 interfaces {
     ae1 {
         description ->AGG;
@@ -156,13 +191,13 @@ interfaces {
         mtu 9192;
         encapsulation flexible-ethernet-services;
         unit 106 {
-            #см. описание группы
+            # См. описание группы
             apply-groups arp-policer-64k;
             description GPON;
             demux-source [ inet inet6 ];
             vlan-id 106;
             family inet {
-                #боремся против спуфинга адресов
+                # Борьба со спуфингом адресов
                 rpf-check fail-filter RPF-ALLOW-DHCP;
                 unnumbered-address lo0.0 preferred-source-address 192.0.2.1;
             }
@@ -183,6 +218,11 @@ interfaces {
         }
     }
 }
+```
+Можно отметить включение [RPF Check](https://www.juniper.net/documentation/en_US/junos/topics/task/configuration/interfaces-configuring-unicast-rpf.html) <sup id="a14">[14](#f14)</sup> на интерфейсах в сторону клиентов. Механизм [RPF Check](https://www.juniper.net/documentation/en_US/junos/topics/task/configuration/interfaces-configuring-unicast-rpf.html) <sup id="a14">[14](#f14)</sup> [рекомендован MANRS](https://www.manrs.org/isps/guide/antispoofing/) <sup id="a15">[15](#f15)</sup> как вклад каждого провайдера в борьбу со спуфингом адресов, ботнетами и паразитным трафиком.
+
+Конфигурация фильтров:
+```ruby
 firewall {
     family inet6 {
         filter RPF-ALLOW-DHCPv6 {
@@ -205,31 +245,44 @@ firewall {
                 then discard;
             }
         }
-    filter RPF-ALLOW-DHCP {
-        term ALLOW-DHCP-BOOTP {
-            from {
-                destination-port dhcp;
+        filter RPF-ALLOW-DHCP {
+            term ALLOW-DHCP-BOOTP {
+                from {
+                    destination-port dhcp;
+                }
+                then accept;
             }
-            then accept;
-        }
-        term DISCARD-ALL {
-            then {
-                discard;
+            term DISCARD-ALL {
+                then {
+                    discard;
+                }
             }
         }
-    }
-    policer arp-64k {
-        filter-specific;
-        if-exceeding {
-            bandwidth-limit 64k;
-            burst-size-limit 8k;
+        policer arp-64k {
+            # При каждом назначении на интерфейс создаваётся новый экземпляр полисера,
+            # иначе будет использоваться один полисер на все интерфейсы,
+            # соответственно и резаться будут все интерфейсы суммарно в 64 Кбит/с
+            filter-specific;
+            # Выделяем ARP 64 Кбит/с, разрешаем всплески до 8 КБайт
+            if-exceeding {
+                bandwidth-limit 64k;
+                burst-size-limit 8k;
+            }
+            then discard;
         }
-        then discard;
     }
 }
+```
+
+Фильтр позволяет пакетам DHCPv4 и DHCPv6 в качестве исключения обходить этот механизм, в противном случае клиенты не получат адресов. Также описан ARP полисер.
+
+Конфигурация профилей доступа и пулов адресов:
+
+```ruby
+access-profile access;
 access {
     profile access {
-        #при проблемах с RADIUS сервером пускать клиентов без авторизации, зачем нам злые клиенты пока мы сервер чиним?
+        # При неработосопособности RADIUS сервера разрешить клиентам работать без авторизации
         authentication-order [ radius none ];
         radius {
             authentication-server 198.51.100.2;
@@ -242,7 +295,7 @@ access {
             198.51.100.2 {
                 port 1812;
                 accounting-port 1813;
-                secret "xxxxxxxxxxxxxxxxxxxx"; ## SECRET-DATA
+                secret "xxxxxxxxxxxxxxxxxxxx";
                 retry 3;
             }
         }
@@ -265,7 +318,8 @@ access {
     }
     address-assignment {
         pool GPON {
-            #когда закончатся адреса в этом пуле, использовать пул GPON2
+            # Когда закончатся адреса в пуле GPON,
+            # начать использовать пул GPON2
             link GPON2;
             family inet {
                 network 10.2.0.0/19;
@@ -285,6 +339,8 @@ access {
                         10.2.0.1;
                     }
                 }
+            }
+        }
         pool v6-prefix-wan {
             family inet6 {
                 prefix 2001:2:1:a::/64;
@@ -307,6 +363,7 @@ access {
                 range prefix-range prefix-length 48;
             }
         }
+    }
     domain {
         map default {
             aaa-routing-instance default;
@@ -317,21 +374,25 @@ access {
 }
 ```
 
-Что в последнем решении плохого? В самом деле ничего, но есть некоторые ньюансы:
+Описаны два пула IPv6 адресов:
+* Пул для [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиента на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> адрес;
+* Пул адресов для клиентов блоками по /48.
 
-- Глобально доступные адреса на WAN интерфейсе клиентов. Не секрет, что в подавляющей своей массе производители CPE не сильно думают о безопасности, оставляя бэкдоры, слабые пароли и лишние сервисы. Достаточно упомянуть, что подавляющее большинство участников ботнетов, которые DDoS тут и там всех кого ни попадя - это домашние рутеры и CPE. Конечно можно возразить, что надо вешать фильтр и разрешать доступ к этому пулу адресов только кому нужно, но это по сравнению с найденным решением требует лишних ресурсов и усложняет конфигурацию. В общем, не хочется выставлять голый зад в Интернет.
+Реализация такой конфигурации имеет некоторые ньюансы. Глобально доступные адреса на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсе [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиентов: производители [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> мало заботятся о безопасности, оставляя бэкдоры, слабые пароли и лишние сервисы с уязвимостями. Подавляющее большинство участников ботнетов, используемых для разнообразных [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack#Distributed_DoS) <sup id="a16">[16](#f16)</sup> атак - домашние маршрутизаторы и [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup>. Также имплементация DHCP клиента у большинства [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> недостаточно полноценна.
 
-- Реализация DHCP клиента у подавляющего большинства CPE тоже оставляет лучшего, так что хотелось бы его избежать где только возможно.
+## NDRA-PD
 
-По этим и другим причинам было решено заменить схему доступа на NDRA PD, тоесть адрес WAN CPE получает сразу при neighbor discovery, потом по DHCP запрашивает префикс для клиента. Также было принято решение раздавать клиентским CPE на WAN интерфейсы адреса из диапазона адресов ULA - fc00::/7. Это аналог широко известных из мира IPv4 приватных адресов, они не маршрутизируемы в Интернет, только в пределах организации. Этим решаем проблему видимости CPE для всего Интернета, не теряя самому доступа к оборудованию при необходимости.
-
-Вот как это описывает в своей документации джунипер:
+В дальнейшем схема доступа была заменена на [NDRA-PD](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/ipv6-addressing-subscriber-access-designs.html#id-design-2-ipv6-addressing-with-ndra-and-dhcpv6-prefix-delegation) <sup id="a17">[17](#f17)</sup>, в которой [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> получает [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> адрес сразу при [Neighbor Discovery](https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol) <sup id="a18">[18](#f18)</sup>, а затем по DHCP запрашивается префикс для клиента. Также было принято решение раздавать клиентским [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсы адреса из диапазона [ULA fc00::/7](https://en.wikipedia.org/wiki/Unique_local_address) <sup id="a19">[19](#f19)</sup>. Такая адресация маршрутизируется только в пределах организации и этим решается вопрос отсутствия видимости [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в глобальной таблице маршрутизации без потери возможности управления [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в рамках интернет-провайдера:
 
   ![NDRA_PD](/images/NDRA_PD.gif)
 
-В результате изменений пришли к такой конфигурации:
+> **Внимание**: По правилам использования ULA адресов из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> следует генерировать уникальный префикс. Для автора важнее удобство запоминания и кодирования структуры сети в адресе, рекомендацией из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> было решено пренебречь.
 
-```
+### Junos® OS конфигурация
+
+Конфигурация сервисов DHCPv4/DHCPv6 и [Dual Stack групп](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> идентична предыдущей, но указан другой динамический профиль:
+
+```ruby
 system {
     services {
         dhcp-local-server {
@@ -339,6 +400,7 @@ system {
                 group DS_SLAAC_PD {
                     overrides {
                         delegated-pool v6-prefix-delegation;
+                        # Общая часть конфигурации IPv4 и IPv6 в Dual Stack группе
                         dual-stack DS_NDRA_PD;
                     }
                     interface ae1.2005;
@@ -346,6 +408,7 @@ system {
             }
             group DHCP-NDRA {
                 overrides {
+                    # Общая часть конфигурации IPv4 и IPv6 в Dual Stack группе
                     dual-stack DS_NDRA_PD;
                 }
                 interface ae1.2005;
@@ -354,6 +417,7 @@ system {
                 authentication {
                     password xxxxxx;
                     username-include {
+                        # В качестве имени пользователя используется MAC адрес
                         mac-address;
                     }
                 }
@@ -362,9 +426,17 @@ system {
                 classification-key {
                     mac-address;
                 }
+                # Если клиент не авторизовался для IPv4,
+                # IPv6 сессия тоже будет считается неавторизованной
                 protocol-master inet;
             }
         }
+    }
+}
+```
+
+Динамический профиль:
+```ruby
 dynamic-profiles {
     user-profile-nrda-pd {
         routing-instances {
@@ -376,10 +448,14 @@ dynamic-profiles {
             demux0 {
                 unit "$junos-interface-unit" {
                     no-traps;
+                    # Proxy ARP для возможности клиентским CPE обнаруживать друг друга,
+                    # OLT по умолчанию изолируют клиентов друг от друга даже в пределах одного VLAN
                     proxy-arp;
                     demux-options {
                         underlying-interface "$junos-underlying-interface";
                     }
+                    # Если используются аггрегированные интерфейсы, это помогает относить каждого клиента
+                    # к одному их интерфейсов агрегата, иначе полисеры буду работать неправильно
                     targeted-distribution;
                     family inet {
                         rpf-check fail-filter RPF-ALLOW-DHCP;
@@ -411,6 +487,12 @@ dynamic-profiles {
         }
     }
 }
+```
+IPv4 часть конфигурации не претерпела никаких изменений, для IPv6 удалена конфигурация с unnumbered-address, так как [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> на каждый интерфейс клиента должен выделять адрес из специального пула адресов NDRA. Поменялась конфигурация протокола router-advertisement, для раздачи адресов будет использован механизм [SLAAC](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) <sup id="a21">[21](#f21)</sup> и только делегированные префиксы будут выданы клиентам по DHCP.
+
+Конфигурация интерфейсов:
+
+```ruby
 interfaces {
     ae1 {
         unit 2005 {
@@ -418,14 +500,20 @@ interfaces {
             demux-source [ inet inet6 ];
             vlan-id 2005;
             family inet {
-                rpf-check   fail-filter RPF-ALLOW-DHCP;
+                # Борьба со спуфингом адресов
+                rpf-check fail-filter RPF-ALLOW-DHCP;
                 unnumbered-address lo0.0 preferred-source-address 192.0.2.1;
             }
             family inet6 {
-                #это один из ньюансов, не надо указывать никакого адреса, не знаю почему
+                # Не требуется указывать адрес
             }
         }
     }
+}
+```
+
+И новый пул:
+```ruby
 access {
     address-assignment {
         neighbor-discovery-router-advertisement ndra-prefixes;
@@ -434,7 +522,7 @@ access {
                 prefix fc00:0001::/48;
                 range R1 prefix-length 64;
                 dhcp-attributes {
-                    domain-name rtarmenia.am;
+                    domain-name domain.tld;
                     dns-server {
                         2001:2:0:53::30;
                         2001:2:0:53::31;
@@ -446,10 +534,26 @@ access {
 }
 ```
 
-Вообще по правилам использования ULA адресов, описанных в RFC4193, надо генерировать уникальный префикс, например с помощью такого онлайн инструмента, ссылка на который есть ниже. Но лично для меня важнее было удобство запоминания и кодирования структуры сети в адресе, так что я этим требованием пренебрег. Если есть какая-то причина, по которой вы считаете, что это неправильно - приходите в чат, подискутируем.
-
 ## Ссылки
-<b id="f1">1</b>. [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) [↩](#a1)<br/>
-<b id="f2">2</b>. [IPv6 addressing subscriber access designs](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/ipv6-addressing-subscriber-access-designs.html) [↩](#a2)<br/>
-<b id="f3">3</b>. [RFC4193](https://tools.ietf.org/html/rfc4193) [↩](#a3)<br/>
-<b id="f4">4</b>. [ULA Range Generator](https://www.ultratools.com/tools/rangeGenerator) [↩](#a4)<br/>
+<b id="f1">1</b>. [Gigabit Passive Optical Network](https://en.wikipedia.org/wiki/Passive_optical_network) [↩](#a1)<br/>
+<b id="f2">2</b>. [Best Current Operational Practice for Operators: IPv6 prefix assignment for end-users](https://www.ripe.net/publications/docs/ripe-690) [↩](#a2)<br/>
+<b id="f3">3</b>. [Broadband Remote Access Server](https://en.wikipedia.org/wiki/Broadband_remote_access_server) [↩](#a3)<br/>
+<b id="f4">4</b>. [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) [↩](#a4)<br/>
+<b id="f5">5</b>. [Software Release Notification for Junos Software Service Release version 17.3R3-S3](https://kb.juniper.net/InfoCenter/index?page=content&id=TSB17512&cat=&actp=LIST) [↩](#a5)<br/>
+<b id="f6">6</b>. [Configuring dual-stack-group (DHCP Local Server)
+](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) [↩](#a6)<br/>
+<b id="f7">7</b>. [Junos® OS 17.3R1 Release Notes](https://www.juniper.net/documentation/en_US/junos/information-products/topic-collections/release-notes/17.3/junos-release-notes-17.3r1.pdf) [↩](#a7)<br/>
+<b id="f8">8</b>. [Business Support System](https://en.wikipedia.org/wiki/Business_support_system) [↩](#a8)<br/>
+<b id="f9">9</b>. [DHCPv6 IA_NA and DHCPv6 Prefix Delegation](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dhcpv6-iana-prefix-delegation-addressing.html) [↩](#a9)<br/>
+<b id="f10">10</b>. [Wide Area Network](https://en.wikipedia.org/wiki/Wide_area_network) [↩](#a10)<br/>
+<b id="f11">11</b>. [Customer-premises Equipment](https://en.wikipedia.org/wiki/Customer-premises_equipment) [↩](#a11)<br/>
+<b id="f12">12</b>. [Особенности работы ARP протокола в Junos Network Operating System](https://ntwrk.today/2020/01/16/juniper-arp.html) [↩](#a12)<br/>
+<b id="f13">13</b>. [Versioning for Dynamic Profiles](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dynamic-profiles-versioning.html) [↩](#a13)<br/>
+<b id="f14">14</b>. [Configuring Unicast RPF check](https://www.juniper.net/documentation/en_US/junos/topics/task/configuration/interfaces-configuring-unicast-rpf.html) [↩](#a14)<br/>
+<b id="f15">15</b>. [Anti-Spoofing – Preventing traffic with spoofed source IP addresses](https://www.manrs.org/isps/guide/antispoofing/) [↩](#a15)<br/>
+<b id="f16">16</b>. [Distributed Denial-of-service Attack](https://en.wikipedia.org/wiki/Denial-of-service_attack#Distributed_DoS) [↩](#a16)<br/>
+<b id="f17">17</b>. [NDRA-PD](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/ipv6-addressing-subscriber-access-designs.html#id-design-2-ipv6-addressing-with-ndra-and-dhcpv6-prefix-delegation) [↩](#a17)<br/>
+<b id="f18">18</b>. [Neighbor Discovery Protocol](https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol) [↩](#a18)<br/>
+<b id="f19">19</b>. [Unique Local Address](https://en.wikipedia.org/wiki/Unique_local_address) [↩](#a19)<br/>
+<b id="f20">20</b>. [RFC4193: Unique Local IPv6 Unicast Addresses](https://tools.ietf.org/html/rfc4193) [↩](#a20)<br/>
+<b id="f21">21</b>. [Stateless Address Autoconfiguration](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) [↩](#a21)<br/>
