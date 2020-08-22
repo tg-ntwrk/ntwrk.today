@@ -15,7 +15,7 @@ IPv6 продолжает расширять свое присутствие, р
 
 Выделение /48 перифкса на клиента. Учитывались рекомендации [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) <sup id="a2">[2](#f2)</sup>, при исопльзовании IPv6 первично должно быть удобство администрирования, а не экономия адресного пространства.
 
-Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделаются порциями по /32, это 64.000 пользователей. RIPE по умолчанию выделяет /32 для LIR, но можно попросить и /29, это 16 x /32.
+Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделяются порциями по /32, это 64.000 пользователей. RIPE по умолчанию выделяет /32 для LIR, но можно попросить и /29, это 16 x /32.
 
 Стратегия выделения адресов:
 * Блоки адресов для инфраструктуры резервируются с начала выделенного адресного пространства;
@@ -24,7 +24,7 @@ IPv6 продолжает расширять свое присутствие, р
 
   ![Addressing_sceme](/images/ipv6-addressing-scheme.png)
 
-На момент написания статьи используемая на [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> версия [Junos® OS 17.3R3-S3](https://kb.juniper.net/InfoCenter/index?page=content&id=TSB17512&cat=&actp=LIST) <sup id="a5">[5](#f5)</sup>. Настоятельно рекомендуется версия с поддержкой [dual-stack-group](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> (начиная с [Junos® OS 17.3R1](https://www.juniper.net/documentation/en_US/junos/information-products/topic-collections/release-notes/17.3/junos-release-notes-17.3r1.pdf) <sup id="a7">[7](#f7)</sup>), иначе IPv4 и IPv6 сессии каждого клиента будут идентифицированы отдельно. Что приведёт к излишним сложностям как на стороне [BSS](https://en.wikipedia.org/wiki/Business_support_system) <sup id="a8">[8](#f8)</sup>, так и с точки зрения использования ресурсов, дополнительное удваивается требуемое количество лицензий.
+На момент написания статьи используемая на [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> версия [Junos® OS 17.3R3-S3](https://kb.juniper.net/InfoCenter/index?page=content&id=TSB17512&cat=&actp=LIST) <sup id="a5">[5](#f5)</sup>. **Настоятельно рекомендуется версия с поддержкой [dual-stack-group](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> (начиная с [Junos® OS 17.3R1](https://www.juniper.net/documentation/en_US/junos/information-products/topic-collections/release-notes/17.3/junos-release-notes-17.3r1.pdf) <sup id="a7">[7](#f7)</sup>), иначе IPv4 и IPv6 сессии каждого клиента будут идентифицированы отдельно. Это приведёт к излишним сложностям как на стороне [BSS](https://en.wikipedia.org/wiki/Business_support_system) <sup id="a8">[8](#f8)</sup>, так и с точки зрения использования ресурсов, дополнительное удваивается требуемое количество лицензий.**
 
 ## DHCPv6 IA_NA, DHCPv6 Prefix Delegation
 
@@ -41,7 +41,7 @@ IPv6 продолжает расширять свое присутствие, р
 ```ruby
 groups {
     arp-policer-64k {
-        # По умолчанию на каждом интерфейсе полисит ARP трафик, при большом
+        # По умолчанию на каждом интерфейсе полисится ARP трафик, при большом
         # количестве клиентов количество записей необходимо увеличить
         interfaces {
             <*> {
@@ -68,7 +68,7 @@ system {
 
 Определена группа для использования ARP полисера на интерфейсе в сторону клиентов, так как полисер по умолчанию слишком строг для даже небольшого количества клиентов. Подробная статья про [особенности работы ARP в Junos® OS](2020-01-16-juniper-arp.md) <sup id="a12">[12](#f12)</sup>.
 
-В этом же блоке задается размер базы конфигурации и включается версионирование динамических профилей, большое подробностей об этом можно найти в документации [LINKS?](LINKS) <sup id="a13">[13](#f13)</sup>.
+В этом же блоке задается размер базы конфигурации и включается версионирование динамических профилей, большое подробностей об этом можно найти в документации [Versioning for Dynamic Profiles](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dynamic-profiles-versioning.html) <sup id="a13">[13](#f13)</sup>.
 
 Конфигурация сервисов DHCPv4, DHCPv6 и [Dual Stack группы](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup>, конфигурация процесса управления клиентами. [Dual Stack группы](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> удобны для выноса общих настроек в отдельный блок, создавая более читаемую конфигурацию:
 
@@ -141,7 +141,7 @@ dynamic-profiles {
             demux0 {
                 unit "$junos-interface-unit" {
                     no-traps;
-                    # Proxy ATP для возможности клиентским CPE обнаруживать друг друга,
+                    # Proxy ARP нужен для возможности клиентским CPE обнаруживать друг друга,
                     # OLT по умолчанию изолируют клиентов друг от друга даже в пределах одного VLAN
                     proxy-arp;
                     demux-options {
@@ -257,8 +257,10 @@ firewall {
             }
         }
         policer arp-64k {
+            #это нужно для того, чтобы при каждом назначении на интерфейс создавался
+            #новый экземпляр полисера, в противном случае будет использоваться один на
+            #все интерфейсы, соответственно и резаться будут все интерфейсы суммарно в #64 Кбит/с 
             filter-specific;
-            # ????
             if-exceeding {
                 bandwidth-limit 64k;
                 burst-size-limit 8k;
@@ -377,7 +379,7 @@ access {
 
 ## NDRA-PD
 
-В дальнейшем схема доступа была заменена на [NDRA-PD LINKS?](LINKS?) <sup id="a17">[17](#f17)</sup>, в которой [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> получает [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> адрес сразу при [Neighbor Discovery](https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol) <sup id="a18">[18](#f18)</sup>, а затем по DHCP запрашивается префикс для клиента. Также было принято решение раздавать клиентским [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсы адреса из диапазона [ULA fc00::/7](https://en.wikipedia.org/wiki/Unique_local_address) <sup id="a19">[19](#f19)</sup>. Такая адресация маршрутизируется только в пределах организации и этим решается вопрос отсутствия видимости [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в глобальной таблице маршрутизации без потери возможности управления [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в рамках интернет-провайдера:
+В дальнейшем схема доступа была заменена на [NDRA-PD](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/ipv6-addressing-subscriber-access-designs.html#id-design-2-ipv6-addressing-with-ndra-and-dhcpv6-prefix-delegation) <sup id="a17">[17](#f17)</sup>, в которой [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> получает [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> адрес сразу при [Neighbor Discovery](https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol) <sup id="a18">[18](#f18)</sup>, а затем по DHCP запрашивается префикс для клиента. Также было принято решение раздавать клиентским [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсы адреса из диапазона [ULA fc00::/7](https://en.wikipedia.org/wiki/Unique_local_address) <sup id="a19">[19](#f19)</sup>. Такая адресация маршрутизируется только в пределах организации и этим решается вопрос отсутствия видимости [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в глобальной таблице маршрутизации без потери возможности управления [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в рамках интернет-провайдера:
 
   ![NDRA_PD](/images/NDRA_PD.gif)
 
@@ -443,7 +445,7 @@ dynamic-profiles {
             demux0 {
                 unit "$junos-interface-unit" {
                     no-traps;
-                    # Proxy ATP для возможности клиентским CPE обнаруживать друг друга,
+                    # Proxy ARP для возможности клиентским CPE обнаруживать друг друга,
                     # OLT по умолчанию изолируют клиентов друг от друга даже в пределах одного VLAN
                     proxy-arp;
                     demux-options {
@@ -543,11 +545,11 @@ access {
 <b id="f10">10</b>. [Wide Area Network](https://en.wikipedia.org/wiki/Wide_area_network) [↩](#a10)<br/>
 <b id="f11">11</b>. [Customer-premises Equipment](https://en.wikipedia.org/wiki/Customer-premises_equipment) [↩](#a11)<br/>
 <b id="f12">12</b>. [Особенности работы ARP протокола в Junos Network Operating System](https://ntwrk.today/2020/01/16/juniper-arp.html) [↩](#a12)<br/>
-<b id="f13">13</b>. [LINKS?](LINKS) [↩](#a13)<br/>
+<b id="f13">13</b>. [Versioning for Dynamic Profiles](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dynamic-profiles-versioning.html) [↩](#a13)<br/>
 <b id="f14">14</b>. [Configuring Unicast RPF check](https://www.juniper.net/documentation/en_US/junos/topics/task/configuration/interfaces-configuring-unicast-rpf.html) [↩](#a14)<br/>
 <b id="f15">15</b>. [Anti-Spoofing – Preventing traffic with spoofed source IP addresses](https://www.manrs.org/isps/guide/antispoofing/) [↩](#a15)<br/>
 <b id="f16">16</b>. [Distributed Denial-of-service Attack](https://en.wikipedia.org/wiki/Denial-of-service_attack#Distributed_DoS) [↩](#a16)<br/>
-<b id="f17">17</b>. [NDRA-PD LINKS?](LINKS?) [↩](#a17)<br/>
+<b id="f17">17</b>. [NDRA-PD](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/ipv6-addressing-subscriber-access-designs.html#id-design-2-ipv6-addressing-with-ndra-and-dhcpv6-prefix-delegation) [↩](#a17)<br/>
 <b id="f18">18</b>. [Neighbor Discovery Protocol](https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol) [↩](#a18)<br/>
 <b id="f19">19</b>. [Unique Local Address](https://en.wikipedia.org/wiki/Unique_local_address) [↩](#a19)<br/>
 <b id="f20">20</b>. [RFC4193: Unique Local IPv6 Unicast Addresses](https://tools.ietf.org/html/rfc4193) [↩](#a20)<br/>
