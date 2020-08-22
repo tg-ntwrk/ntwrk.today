@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Конфигурирование Juniper BRAS для IPoE клиентов с оспользованием Dual Stack и NDRA-PD"
+title: "Конфигурирование Juniper BRAS для IPoE клиентов с использованием Dual Stack и NDRA-PD"
 tags: juniper bras ipv6 dual-stack ndra-pd ipoe
 author: "kmisak"
 ---
