@@ -24,7 +24,9 @@ IPv6 продолжает расширять свое присутствие, р
 
   ![Addressing_sceme](/images/ipv6-addressing-scheme.png)
 
-На момент написания статьи используемая на [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> версия [Junos® OS 17.3R3-S3](https://kb.juniper.net/InfoCenter/index?page=content&id=TSB17512&cat=&actp=LIST) <sup id="a5">[5](#f5)</sup>. **Настоятельно рекомендуется версия с поддержкой [dual-stack-group](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> (начиная с [Junos® OS 17.3R1](https://www.juniper.net/documentation/en_US/junos/information-products/topic-collections/release-notes/17.3/junos-release-notes-17.3r1.pdf) <sup id="a7">[7](#f7)</sup>), иначе IPv4 и IPv6 сессии каждого клиента будут идентифицированы отдельно. Это приведёт к излишним сложностям как на стороне [BSS](https://en.wikipedia.org/wiki/Business_support_system) <sup id="a8">[8](#f8)</sup>, так и с точки зрения использования ресурсов, дополнительное удваивается требуемое количество лицензий.**
+На момент написания статьи используемая на [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> версия [Junos® OS 17.3R3-S3](https://kb.juniper.net/InfoCenter/index?page=content&id=TSB17512&cat=&actp=LIST) <sup id="a5">[5](#f5)</sup>.
+
+> **Внимание**: Настоятельно рекомендуется версия с поддержкой [dual-stack-group](https://www.juniper.net/documentation/en_US/junos/topics/reference/configuration-statement/system-services-dhcp-local-server-dual-stack-group.html) <sup id="a6">[6](#f6)</sup> (начиная с [Junos® OS 17.3R1](https://www.juniper.net/documentation/en_US/junos/information-products/topic-collections/release-notes/17.3/junos-release-notes-17.3r1.pdf) <sup id="a7">[7](#f7)</sup>), иначе IPv4 и IPv6 сессии каждого клиента будут идентифицированы отдельно. Это приведёт к излишним сложностям как на стороне [BSS](https://en.wikipedia.org/wiki/Business_support_system) <sup id="a8">[8](#f8)</sup>, так и с точки зрения использования ресурсов, дополнительное удваивается требуемое количество лицензий.
 
 ## DHCPv6 IA_NA, DHCPv6 Prefix Delegation
 
@@ -109,7 +111,7 @@ system {
                 mac-address;
             }
             # Если клиент не авторизовался для IPv4,
-            # IPv6 сессия тоже будет считается неавторизованной
+            # IPv6 сессия тоже считается неавторизованной
             protocol-master inet;
         }
     }
@@ -141,7 +143,7 @@ dynamic-profiles {
             demux0 {
                 unit "$junos-interface-unit" {
                     no-traps;
-                    # Proxy ARP нужен для возможности клиентским CPE обнаруживать друг друга,
+                    # Proxy ARP для возможности клиентским CPE обнаруживать друг друга,
                     # OLT по умолчанию изолируют клиентов друг от друга даже в пределах одного VLAN
                     proxy-arp;
                     demux-options {
@@ -257,11 +259,11 @@ firewall {
             }
         }
         policer arp-64k {
-            #это нужно для того, чтобы при каждом назначении на интерфейс создавался
-            #новый экземпляр полисера, в противном случае будет использоваться один на
-            #все интерфейсы, соответственно и резаться будут все интерфейсы суммарно в #64 Кбит/с
+            # При каждом назначении на интерфейс создаваётся новый экземпляр полисера,
+            # иначе будет использоваться один полисер на все интерфейсы,
+            # соответственно и резаться будут все интерфейсы суммарно в 64 Кбит/с
             filter-specific;
-            #выделяем ARP 64 Кбит/с, разрешаем всплески до 8 КБайт
+            # Выделяем ARP 64 Кбит/с, разрешаем всплески до 8 КБайт
             if-exceeding {
                 bandwidth-limit 64k;
                 burst-size-limit 8k;
@@ -384,7 +386,7 @@ access {
 
   ![NDRA_PD](/images/NDRA_PD.gif)
 
-> Внимание: По правилам использования ULA адресов из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> следует генерировать уникальный префикс. Для автора важнее удобство запоминания и кодирования структуры сети в адресе, рекомендацией из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> было решено пренебречь.
+> **Внимание**: По правилам использования ULA адресов из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> следует генерировать уникальный префикс. Для автора важнее удобство запоминания и кодирования структуры сети в адресе, рекомендацией из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> было решено пренебречь.
 
 ### Junos® OS конфигурация
 
