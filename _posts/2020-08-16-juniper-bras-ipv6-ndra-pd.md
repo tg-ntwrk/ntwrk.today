@@ -224,6 +224,19 @@ interfaces {
 Конфигурация фильтров:
 ```ruby
 firewall {
+    filter RPF-ALLOW-DHCP {
+        term ALLOW-DHCP-BOOTP {
+            from {
+                destination-port dhcp;
+            }
+            then accept;
+        }
+        term DISCARD-ALL {
+            then {
+                discard;
+            }
+        }
+    }
     family inet6 {
         filter RPF-ALLOW-DHCPv6 {
             term ALLOW-DHCP-INET6 {
@@ -243,19 +256,6 @@ firewall {
             }
             term DISCARD-ALL {
                 then discard;
-            }
-        }
-        filter RPF-ALLOW-DHCP {
-            term ALLOW-DHCP-BOOTP {
-                from {
-                    destination-port dhcp;
-                }
-                then accept;
-            }
-            term DISCARD-ALL {
-                then {
-                    discard;
-                }
             }
         }
     }
