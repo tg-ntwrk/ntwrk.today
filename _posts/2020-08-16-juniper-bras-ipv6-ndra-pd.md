@@ -13,7 +13,7 @@ IPv6 продолжает расширять свое присутствие, р
 
 ### Технологии и принятые решения:
 
-Выделение /48 перифкса на клиента. Учитывались рекомендации [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) <sup id="a2">[2](#f2)</sup>, при исопльзовании IPv6 первично должно быть удобство администрирования, а не экономия адресного пространства.
+Выделение /48 префикса на клиента. Учитывались рекомендации [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) <sup id="a2">[2](#f2)</sup>, при исопльзовании IPv6 первично должно быть удобство администрирования, а не экономия адресного пространства.
 
 Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделяются порциями по /32, это 65.536 пользователей. RIPE NCC по умолчанию выделяет /32 для LIR, но можно попросить без особых обоснований и /29, это 16 x /32.
 
@@ -378,7 +378,7 @@ access {
 * Пул для [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиента на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> адрес;
 * Пул адресов для клиентов блоками по /48.
 
-Реализация такой конфигурации имеет некоторые ньюансы. Глобально доступные адреса на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсе [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиентов: производители [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> мало заботятся о безопасности, оставляя бэкдоры, слабые пароли и лишние сервисы с уязвимостями. Подавляющее большинство участников ботнетов, используемых для разнообразных [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack#Distributed_DoS) <sup id="a16">[16](#f16)</sup> атак - домашние маршрутизаторы и [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup>. Также имплементация DHCP клиента у большинства [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> недостаточно полноценна.
+Реализация такой конфигурации имеет некоторые нюансы. Глобально доступные адреса на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсе [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиентов: производители [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> мало заботятся о безопасности, оставляя бэкдоры, слабые пароли и лишние сервисы с уязвимостями. Подавляющее большинство участников ботнетов, используемых для разнообразных [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack#Distributed_DoS) <sup id="a16">[16](#f16)</sup> атак - домашние маршрутизаторы и [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup>. Также имплементация DHCP клиента у большинства [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> недостаточно полноценна.
 
 ## NDRA-PD
 
