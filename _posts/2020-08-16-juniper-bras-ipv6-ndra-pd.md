@@ -1,11 +1,11 @@
 ---
 layout: post
-title: "Конфигурирование Juniper BRAS для IPoE клиентов с оспользованием Dual Stack и NDRA-PD"
+title: "Конфигурирование Juniper BRAS для IPoE клиентов с использованием Dual Stack и NDRA-PD"
 tags: juniper bras ipv6 dual-stack ndra-pd ipoe
 author: "kmisak"
 ---
 
-Конфигурирование Juniper BRAS для IPoE клиентов с оспользованием Dual Stack и NDRA-PD
+Конфигурирование Juniper BRAS для IPoE клиентов с использованием Dual Stack и NDRA-PD
 
 ## Вместо предисловия
 
@@ -15,7 +15,7 @@ IPv6 продолжает расширять свое присутствие, р
 
 Выделение /48 префикса на клиента. Учитывались рекомендации [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) <sup id="a2">[2](#f2)</sup>, при исопльзовании IPv6 первично должно быть удобство администрирования, а не экономия адресного пространства.
 
-Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделяются порциями по /32, это 65.536 пользователей. RIPE NCC по умолчанию выделяет /32 для LIR, но можно попросить без особых обоснований и /29, это 16 x /32.
+Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделяются порциями по /32, это 65.536 пользователей. [RIPE NCC](https://en.wikipedia.org/wiki/RIPE_NCC) <sup id="a22">[22](#f22)</sup> по умолчанию выделяет /32 для [LIR](https://en.wikipedia.org/wiki/Regional_Internet_registry#Local_Internet_registry) <sup id="a23">[23](#f23)</sup>, но можно попросить без особых обоснований и /29, это 16 x /32.
 
 Стратегия выделения адресов:
 * Блоки адресов для инфраструктуры резервируются с начала выделенного адресного пространства;
@@ -488,7 +488,7 @@ dynamic-profiles {
     }
 }
 ```
-IPv4 часть конфигурации не претерпела никаких изменений, для IPv6 удалена конфигурация с unnumbered-address, так как [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> на каждый интерфейс клиента должен выделять адрес из специального пула адресов NDRA. Поменялась конфигурация протокола router-advertisement, для раздачи адресов будет использован механизм [SLAAC](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) <sup id="a21">[21](#f21)</sup> и только делегированные префиксы будут выданы клиентам по DHCP.
+IPv4 часть конфигурации не претерпела никаких изменений, для IPv6 удалена конфигурация с unnumbered-address, так как [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> на каждый интерфейс клиента должен выделять адрес из специального пула адресов NDRA. Поменялась конфигурация протокола router-advertisement, для раздачи адресов будет использован механизм [SLAAC](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) <sup id="a22">[22](#f22)</sup> и только делегированные префиксы будут выданы клиентам по DHCP.
 
 Конфигурация интерфейсов:
 
@@ -557,3 +557,5 @@ access {
 <b id="f19">19</b>. [Unique Local Address](https://en.wikipedia.org/wiki/Unique_local_address) [↩](#a19)<br/>
 <b id="f20">20</b>. [RFC4193: Unique Local IPv6 Unicast Addresses](https://tools.ietf.org/html/rfc4193) [↩](#a20)<br/>
 <b id="f21">21</b>. [Stateless Address Autoconfiguration](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) [↩](#a21)<br/>
+<b id="f22">22</b>. [RIPE NCC (Réseaux IP Européens Network Coordination Centre)](https://en.wikipedia.org/wiki/RIPE_NCC) [↩](#a22)<br/>
+<b id="f23">23</b>. [Local Internet Registry](https://en.wikipedia.org/wiki/Regional_Internet_registry#Local_Internet_registry) [↩](#a23)<br/>
