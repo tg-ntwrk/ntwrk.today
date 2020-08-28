@@ -13,9 +13,9 @@ IPv6 продолжает расширять свое присутствие, р
 
 ### Технологии и принятые решения:
 
-Выделение /48 перифкса на клиента. Учитывались рекомендации [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) <sup id="a2">[2](#f2)</sup>, при исопльзовании IPv6 первично должно быть удобство администрирования, а не экономия адресного пространства.
+Выделение /48 префикса на клиента. Учитывались рекомендации [RIPE-690](https://www.ripe.net/publications/docs/ripe-690) <sup id="a2">[2](#f2)</sup>, при исопльзовании IPv6 первично должно быть удобство администрирования, а не экономия адресного пространства.
 
-Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделяются порциями по /32, это 64.000 пользователей. RIPE по умолчанию выделяет /32 для LIR, но можно попросить и /29, это 16 x /32.
+Выделение /32 на один [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup>, для начала. Используется Juniper MX480, официально поддерживающий до 256.000 [Dual Stack](https://en.wikipedia.org/wiki/IPv6#Dual-stack_IP_implementation) <sup id="a4">[4](#f4)</sup> пользователей. Адреса выделяются порциями по /32, это 65.536 пользователей. [RIPE NCC](https://en.wikipedia.org/wiki/RIPE_NCC) <sup id="a22">[22](#f22)</sup> по умолчанию выделяет /32 для [LIR](https://en.wikipedia.org/wiki/Regional_Internet_registry#Local_Internet_registry) <sup id="a23">[23](#f23)</sup>, но можно попросить без особых обоснований и /29, это 16 x /32.
 
 Стратегия выделения адресов:
 * Блоки адресов для инфраструктуры резервируются с начала выделенного адресного пространства;
@@ -68,7 +68,7 @@ system {
 }
 ```
 
-Определена группа для использования ARP полисера на интерфейсе в сторону клиентов, так как полисер по умолчанию слишком строг для даже небольшого количества клиентов. Подробная статья про [особенности работы ARP в Junos® OS](2020-01-16-juniper-arp.md) <sup id="a12">[12](#f12)</sup>.
+Определена группа для использования ARP полисера на интерфейсе в сторону клиентов, так как полисер по умолчанию слишком строг для даже небольшого количества клиентов. Подробная статья про [особенности работы ARP в Junos® OS](https://ntwrk.today/2020/01/16/juniper-arp.html) <sup id="a12">[12](#f12)</sup>.
 
 В этом же блоке задается размер базы конфигурации и включается версионирование динамических профилей, большое подробностей об этом можно найти в документации [Versioning for Dynamic Profiles](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dynamic-profiles-versioning.html) <sup id="a13">[13](#f13)</sup>.
 
@@ -149,7 +149,7 @@ dynamic-profiles {
                     demux-options {
                         underlying-interface "$junos-underlying-interface";
                     }
-                    # Если используются аггрегированные интерфейсы, это помогает относить каждого клиента
+                    # Если используются агрегированные интерфейсы, это помогает относить каждого клиента
                     # к одному их интерфейсов агрегата, иначе полисеры буду работать неправильно
                     targeted-distribution;
                     family inet {
@@ -224,6 +224,19 @@ interfaces {
 Конфигурация фильтров:
 ```ruby
 firewall {
+    filter RPF-ALLOW-DHCP {
+        term ALLOW-DHCP-BOOTP {
+            from {
+                destination-port dhcp;
+            }
+            then accept;
+        }
+        term DISCARD-ALL {
+            then {
+                discard;
+            }
+        }
+    }
     family inet6 {
         filter RPF-ALLOW-DHCPv6 {
             term ALLOW-DHCP-INET6 {
@@ -245,31 +258,18 @@ firewall {
                 then discard;
             }
         }
-        filter RPF-ALLOW-DHCP {
-            term ALLOW-DHCP-BOOTP {
-                from {
-                    destination-port dhcp;
-                }
-                then accept;
-            }
-            term DISCARD-ALL {
-                then {
-                    discard;
-                }
-            }
+    }
+    policer arp-64k {
+        # При каждом назначении на интерфейс создаётся новый экземпляр полисера,
+        # иначе будет использоваться один полисер на все интерфейсы,
+        # соответственно и резаться будут все интерфейсы суммарно в 64 Кбит/с
+        filter-specific;
+        # Выделяем ARP 64 Кбит/с, разрешаем всплески до 8 КБайт
+        if-exceeding {
+            bandwidth-limit 64k;
+            burst-size-limit 8k;
         }
-        policer arp-64k {
-            # При каждом назначении на интерфейс создаваётся новый экземпляр полисера,
-            # иначе будет использоваться один полисер на все интерфейсы,
-            # соответственно и резаться будут все интерфейсы суммарно в 64 Кбит/с
-            filter-specific;
-            # Выделяем ARP 64 Кбит/с, разрешаем всплески до 8 КБайт
-            if-exceeding {
-                bandwidth-limit 64k;
-                burst-size-limit 8k;
-            }
-            then discard;
-        }
+        then discard;
     }
 }
 ```
@@ -378,7 +378,7 @@ access {
 * Пул для [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиента на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> адрес;
 * Пул адресов для клиентов блоками по /48.
 
-Реализация такой конфигурации имеет некоторые ньюансы. Глобально доступные адреса на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсе [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиентов: производители [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> мало заботятся о безопасности, оставляя бэкдоры, слабые пароли и лишние сервисы с уязвимостями. Подавляющее большинство участников ботнетов, используемых для разнообразных [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack#Distributed_DoS) <sup id="a16">[16](#f16)</sup> атак - домашние маршрутизаторы и [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup>. Также имплементация DHCP клиента у большинства [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> недостаточно полноценна.
+Реализация такой конфигурации имеет некоторые нюансы. Глобально доступные адреса на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсе [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> клиентов: производители [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> мало заботятся о безопасности, оставляя бэкдоры, слабые пароли и лишние сервисы с уязвимостями. Подавляющее большинство участников ботнетов, используемых для разнообразных [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack#Distributed_DoS) <sup id="a16">[16](#f16)</sup> атак - домашние маршрутизаторы и [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup>. Также имплементация DHCP клиента у большинства [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> недостаточно полноценна.
 
 ## NDRA-PD
 
@@ -454,8 +454,8 @@ dynamic-profiles {
                     demux-options {
                         underlying-interface "$junos-underlying-interface";
                     }
-                    # Если используются аггрегированные интерфейсы, это помогает относить каждого клиента
-                    # к одному их интерфейсов агрегата, иначе полисеры буду работать неправильно
+                    # Если используются агрегированные интерфейсы, это помогает относить каждого клиента
+                    # к одному из интерфейсов агрегата, иначе полисеры буду работать неправильно
                     targeted-distribution;
                     family inet {
                         rpf-check fail-filter RPF-ALLOW-DHCP;
@@ -488,7 +488,7 @@ dynamic-profiles {
     }
 }
 ```
-IPv4 часть конфигурации не претерпела никаких изменений, для IPv6 удалена конфигурация с unnumbered-address, так как [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> на каждый интерфейс клиента должен выделять адрес из специального пула адресов NDRA. Поменялась конфигурация протокола router-advertisement, для раздачи адресов будет использован механизм [SLAAC](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) <sup id="a21">[21](#f21)</sup> и только делегированные префиксы будут выданы клиентам по DHCP.
+IPv4 часть конфигурации не претерпела никаких изменений, для IPv6 удалена конфигурация с unnumbered-address, так как [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> на каждый интерфейс клиента должен выделять адрес из специального пула адресов NDRA. Поменялась конфигурация протокола router-advertisement, для раздачи адресов будет использован механизм [SLAAC](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) <sup id="a22">[22](#f22)</sup> и только делегированные префиксы будут выданы клиентам по DHCP.
 
 Конфигурация интерфейсов:
 
@@ -557,3 +557,5 @@ access {
 <b id="f19">19</b>. [Unique Local Address](https://en.wikipedia.org/wiki/Unique_local_address) [↩](#a19)<br/>
 <b id="f20">20</b>. [RFC4193: Unique Local IPv6 Unicast Addresses](https://tools.ietf.org/html/rfc4193) [↩](#a20)<br/>
 <b id="f21">21</b>. [Stateless Address Autoconfiguration](https://en.wikipedia.org/wiki/IPv6#Stateless_address_autoconfiguration_(SLAAC)) [↩](#a21)<br/>
+<b id="f22">22</b>. [RIPE NCC (Réseaux IP Européens Network Coordination Centre)](https://en.wikipedia.org/wiki/RIPE_NCC) [↩](#a22)<br/>
+<b id="f23">23</b>. [Local Internet Registry](https://en.wikipedia.org/wiki/Regional_Internet_registry#Local_Internet_registry) [↩](#a23)<br/>
