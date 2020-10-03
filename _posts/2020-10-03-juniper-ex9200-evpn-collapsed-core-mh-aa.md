@@ -17,12 +17,12 @@ An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/loca
 
 От себя я хочу добавить отличие в платформе с MX и разницу в конфигурации:
 1. На EX9200 не поддерживаются следующие опции:
-    1.1. ```set chassis ecmp-alb;```
-    1.2. ```set chassis network-services enhanced-ip```;
-    1.3. ```set routing-options forwarding-table ecmp-fast-reroute```.
+   1. ```set chassis ecmp-alb;```
+   2. ```set chassis network-services enhanced-ip```;
+   3. ```set routing-options forwarding-table ecmp-fast-reroute```.
 2. В силу того, что в кампусе не нужна такая гранулярность, как она была нужна в ДЦ во время миграции между устройствами разных производителей с сохранением сервиса, мы упрощаем конфигурацию в следующем:
-    2.1. Вместо VLAN-based используем VLAN-Aware bundle services;
-    2.2. Вместо ESI per IFL используем ESI per IFD.
+   1. Вместо VLAN-based используем VLAN-Aware bundle services;
+   2. Вместо ESI per IFL используем ESI per IFD.
 
 Многие так же могут заметить что используется dataplane MPLS для EVPN, а не VXLAN, причина кроется в следующем:
 1. Уже есть MPLS backbone и многие сервисы работают именно поверх MPLS, поэтому проще и быстрее предоставить сервис для пользователей в кампусе используя MPLS;
