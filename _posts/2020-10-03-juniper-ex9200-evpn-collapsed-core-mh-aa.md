@@ -5,11 +5,13 @@ tags: juniper mpls bgp evpn l3vpn
 author: "somovis"
 ---
 
-В данной заметке я хочу поделится опытом построения сети передачи данных кампуса на базе оборудования **Juniper EX9200** используя **EVPN Collapsed Core**, более детально можно ознакомится в презентации по ссылке - https://www.juniper.net/assets/us/en/local/pdf/nxtwork/network-vpn-test-without-dhcp-relay-evolved-campus-core.pdf
+В данной заметке я хочу поделится опытом построения сети передачи данных кампуса на базе оборудования **Juniper EX9200** используя **EVPN Collapsed Core**, более детально можно ознакомится в презентации по ссылке - [Evolved Campus Core:
+An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/local/pdf/nxtwork/network-vpn-test-without-dhcp-relay-evolved-campus-core.pdf)
 
 ## Вступление
 
- Описание работы механизма EVPN пропущено, так как данная заметка практически полностью копирует заметку написанную ранее, рекомендую ознакомится с ней по ссылке - https://ntwrk.today/2019/06/21/juniper-mx-evpn-mh-aa.html
+ Описание работы механизма EVPN пропущено, так как данная заметка практически полностью копирует заметку написанную ранее, рекомендую ознакомится с ней по ссылке - [Самое необходимое про EVPN/MPLS MH A/A + L3VPN на Juniper MX
+](https://ntwrk.today/2019/06/21/juniper-mx-evpn-mh-aa.html)
 Вы можете спросить: "зачем же писать еще одну заметку?".
 Ответ будет простым: **в данной заметке речь пойдет именно про особенности сети передачи данных в кампусе**, что может быть полезно для инженеров с упором на корпоративных заказчиков.
 
