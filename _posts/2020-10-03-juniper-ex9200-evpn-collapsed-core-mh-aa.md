@@ -6,7 +6,7 @@ author: "somovis"
 ---
 
 В данной заметке я хочу поделится опытом построения сети передачи данных кампуса на базе оборудования **Juniper EX9200** используя **EVPN Collapsed Core**, более детально можно ознакомится в презентации по ссылке - [Evolved Campus Core:
-An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/local/pdf/nxtwork/network-vpn-test-without-dhcp-relay-evolved-campus-core.pdf)
+An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/local/pdf/nxtwork/network-infrastructure-evolved-campus-core.pdf)
 
 ## Вступление
 
@@ -1265,5 +1265,5 @@ protocols {
 ## Ссылки
 <b id="f1">1</b>. [Самое необходимое про EVPN/MPLS MH A/A + L3VPN на Juniper MX](https://ntwrk.today/2019/06/21/juniper-mx-evpn-mh-aa.html) [↩](#a1)<br/>
 <b id="f2">2</b>. [Evolved Campus Core:
-An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/local/pdf/nxtwork/network-vpn-test-without-dhcp-relay-evolved-campus-core.pdf) [↩](#a2)<br/>
+An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/local/pdf/nxtwork/network-infrastructure-evolved-campus-core.pdf) [↩](#a2)<br/>
 <b id="f3">3</b>. [Understanding When to Disable EVPN-VXLAN Core Isolation](https://www.juniper.net/documentation/en_US/junos/topics/concept/evpn-vxlan-core-isolation-disabling.html) [↩](#a3)<br/>
