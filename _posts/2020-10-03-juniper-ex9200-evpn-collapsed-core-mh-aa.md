@@ -40,33 +40,45 @@ An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/loca
 Я не могу пропустить это сравнение, так как оно все же может быть полезным.
 
 **Плюсы**:
-1. Отсутствие необходимости в дополнительном протоколе резервирования Ethernet - MC-LAG/Virtual-Chassis или прочих;
-2. Отсутствие необходимости в дополнительном протоколе резервирования шлюза - VRRP или прочих;
+1. Отсутствие необходимости в дополнительном протоколе резервирования Ethernet - MC-LAG/Virtual-Chassis или других;
+2. Отсутствие необходимости в дополнительном протоколе резервирования шлюза - VRRP или других;
 3. Возможность использовать конфигурацию Active-Active как для L2, так и для L3 трафика;
-4. Возможность горизонтального масштабирования (более двух устройств), но это не кейс для кампуса, однако все равно плюс;
+4. Возможность горизонтального масштабирования (более двух устройств), ***но это не кейс для кампуса***, однако все равно плюс;
 5. В случае необходимости нативными средствами EVPN (если другая сторона поддерживает EVPN/MPLS) возможно растянуть L2 домен;
-6. Сокращается количество запущенных протоколов на устройстве, в следствии чего уеньшается вероятность перебоя в работе устройства из-за возможной ошибки в одном из протоколов.
+6. Механизм ARP-Suppression который помогает сократить количество BUM трафика в сети передачи данных;
+7. Сокращается количество запущенных протоколов на устройстве, в следствии чего уеньшается вероятность перебоя в работе устройства из-за возможной ошибки в одном из протоколов.
 
 **Минсусы**:
 1. Невозможно использовать Active-Standby для L2 и для L3 трафика одновременно. Да, можно поменять Local-preference для L3 и сделать EVPN DF preference-based, но не все можно настроить руками и для этого нужен дополнительный внешний механизм - скрипты on-box/eem и прочее;
 2. Новый протокол, еще недостаточно проверен временем и в реализации разных вендоров до сих пор встречаются мажорные баги;
 3. В дополнение к предыдущему пункту - не все инженеры могут быть готовы к поиску и исправлению проблем в сети передачи данных на базе EVPN; 
-4. Невозможно обеспечить ZTP для нижестоящих устройств в некоторых случаях без предварительного конфигурирования AC;
-5. Невозможно использовать динамическую маршрутизацию на IRB с anycast-gateway.
+4. ***Невозможно обеспечить ZTP для нижестоящих устройств*** (серверов или коммутаторов доступа) в некоторых случаях ***без предварительного конфигурирования Attachment Circuit*** (AC) и перенастройки его в "боевой" режим после успешного провижининга нижестоящих устройств;
+5. ***Невозможно использовать динамическую маршрутизацию на IRB с anycast-gateway***. Но, в качестве примера, ***это ограничение можно обойти добавив индивидуальные IP адреса на каждый IRB как prefered***.
 
 >Если что-то вдруг забыл указать, напишите в ЛС, добавлю.
 
 ## Пример конфигурации
 
-> **Конфигурация может изменятся по мере реализации новых возможностей производителем**.
+Чтобы не смущать людей большим куском конфигурации сообщество подсказало разбить конфигурацию на части с объяснениями таковых. В примере конфигурация AR01 будет разбита на части с объяснениями, а конфигурация AR02 будет приведена итоговая, одной не делимой чатсью.
+
+> ***Конфигурация может изменятся по мере реализации новых возможностей производителем***.
 
 > **Особенности:** Конфигурация тестировалась на Junos 19.3R3, так как **начиная с Junos 19.3R1 добавили возможность использовать DHCP-Relay в EVPN/MPLS**.
 
-> **Примечание:** Часть важных опций прокомментирована и конфигурация, не имеющая отношение к делу, удалена.
+> **Примечание:** Часть важных опций прокомментирована и конфигурация, не имеющая отношение к делу, удалена. А так же у меня есть привычка экономить и унифицировать конфигурацию через apply-groups, далее в конфигурации еще не однократно это будет видно.
 
 **AR01**:
+
+**Собственно, версия:**
+
 ```
 version 19.3R3.6;
+```
+
+В данной части конфигурации нет прямого отношения к EVPN, но, поскольку используется MPLS "перекидка" в underlay между AR01 и AR02, а так же L3VPN для обеспечения доступа к сервисам через MPLS backbone, то, нам пригодится BFD для детектирования доступности связности по L3 в underlay между напрямую подключенными устройствами, чтобы быстрее изъять проблемный next-hop из FIB (если есть backup next-hop). Поскольку для BGP основное правило работы связано с доступностью next-hop, то можно позволить не использовать BFD в overlay, но мы к этому еще вернемся. Так же тут есть опция ```node-link-protection```, она нужна чтобы избегать проблемное устройство и ***по возможности*** инсталлировать в FIB backup next-hop другого устройства (Remote-LFA и PQ-Node отдаю на самостоятельное изучение). По возможности, потому-что если не будет доступен ```node-link-protection```, то будет использован классический ```link-protection``` при помощи опции ```node-link-degradation```.
+**Часть конфигурации OSPF и интерфейсов:**
+
+```
 groups {
     interface-ospf {
         protocols {
@@ -87,17 +99,14 @@ groups {
             }
         }
     }
-    interface-mpls {
-        interfaces {
-            <*> {
-                unit 0 {
-                    family mpls {
-                        maximum-labels 5;
-                    }
-                }
-            }
-        }
-    }
+}
+```
+
+В данной части конфигурации описана группа с базовыми настройками L3VPN инстанса, такими как ```instance-type```, ```multipath```, ```protect core``` (он же BGP PIC), ```auto-export``` и ```vrf-table-lable```. Для тех, кто не знаком с Junos, рекомендую самостоятельно ознакомится с ними, а для тех, кто знаком, все эти опции говорят сами за себя.
+**Часть конфигурации RI VRF:**
+
+```
+groups {
     ri-vrf {
         routing-instances {
             <*> {
@@ -111,6 +120,13 @@ groups {
             }
         }
     }
+}
+```
+В данной части конфигурации описана группа для функционирования DHCP-Relay, мы ведь все же про кампус говорим.
+**Часть конфигурации DHCP-Relay:**
+
+```
+groups {
     dhcp-relay-group {
         routing-instances {
             <*> {
@@ -141,6 +157,16 @@ groups {
             }
         }
     }
+}
+```
+В данной части конфигурации описана группа AC для EVPN в сценарии all-active для подключения коммутаторов доступа. Удобно описать одну группа и делать изменения именно в ней, чтобы применить настройки для всех интерфейсов, на которые применена данная группа, например добавить/удалить VLAN. Из важного ***стоит обратить внимание на указание наследование ESI от LACP system-id*** при помощи ```esi {
+                    auto-derive {
+                        lacp;
+                    }}``` и на то что ***ESI указан в контексте IFD, а не IFL***, как я делал это в предыдущей заметке, потому-что в кампусе нам не нужна такая гранулярноть, как была нужна ранее.
+**Часть конфигурации AC для EVPN A/A:**
+
+```
+groups {
     interface-evpn-all-active {
         interfaces {
             <*> {
@@ -165,6 +191,16 @@ groups {
             }
         }
     }
+}
+```
+В данной части конфигурации описана группа с базовыми настройками EVPN инстанса, такими как ```instance-type```, ```remote-ip-host-routes```, ```label-allocation per-instance```, ```default-gateway do-not-advertise``` и ```duplicate-mac-detection```.
+Опция ```remote-ip-host-routes``` позволяет оптимизировать входящий трафик на шлюз, если это нам будет нужно.
+Опция ```default-gateway do-not-advertise``` выключает анонсирование BGP default-gateway community, а опция ```duplicate-mac-detection``` позволяет бороться с MAC-move.
+***Хочу сразу заметить, что данная группа создана для конфигурации EVPN VLAN-based инстансов на всякий случай***, а у нас же будет использоваться один единственный инстанс EVPN VLAN-aware bundle о котором будет информация далее.
+**Часть конфигурации RI EVPN:**
+
+```
+groups {
     ri-evpn {
         routing-instances {
             <*> {
@@ -184,12 +220,13 @@ groups {
             }
         }
     }
+}
+```
+
+***Просто полезная часть конфигурации для кампусной сети в контексте ```system```, (вы можете ознакомится самостоятельно про все опции на сайте производителя) не имеющая прямого отношения к EVPN:***
+
+```
 system {
-    host-name ar01;
-    commit {
-        persist-groups-inheritance;
-        delta-export;
-    }
     no-redirects;
     arp {
         aging-timer 5;
@@ -203,21 +240,6 @@ system {
         tcp-drop-synfin-set;
         no-tcp-reset drop-all-tcp;
     }
-    compress-configuration-files;
-    max-configurations-on-flash 49;
-    archival {
-        configuration {
-            transfer-on-commit;
-            archive-sites {
-                ftp://***/upload/configurations/;
-            }
-        }
-    }
-    license {
-        autoupdate {
-            url https://ae1.juniper.net/junos/key_retrieval;
-        }
-    }
     ddos-protection {
         global {
             flow-detection;
@@ -225,7 +247,7 @@ system {
         protocols {
             dhcpv4 {
                 aggregate {
-                    flow-level-detection { ## Warning: 'flow-level-detection' is deprecated
+                    flow-level-detection {
                         subscriber on;
                         logical-interface on;
                         physical-interface on;
@@ -248,38 +270,13 @@ system {
             }
         }
     }
-    ntp {
-        peer 10.100.0.97;
-        server 10.50.77.65 prefer;
-        server 10.50.67.65 prefer;
-    }
 }
-chassis {
-    craft-lockout;
-    aggregated-devices {
-        ethernet {
-            device-count 24;
-        }
-    }
-    alarm {
-        management-ethernet {
-            link-down ignore;
-        }
-    }
-}
+```
+
+***Часть конфигурации описывающая настройки MPLS интерфейсов***, ничего необычного:
+
+```
 interfaces {
-    xe-0/0/0 {
-        hold-time up 120000 down 1;
-        gigether-options {
-            802.3ad ae0;
-        }
-    }
-    xe-0/0/1 {
-        hold-time up 120000 down 1;
-        gigether-options {
-            802.3ad ae1;
-        }
-    }
     xe-0/3/5 {
         apply-groups interface-mpls;
         description "link with p1";
@@ -310,6 +307,47 @@ interfaces {
             }
         }
     }
+}
+```
+
+Часть конфигурации описывающая настройки физических интерфейсов для кодключения коммутаторов доступа, а так же логическое выделение количества LAG интерфейсов на шасси.
+Стоит обратить внимание на ```hold-time up 120000``` - это сделано для того, чтобы предотвратить возможную потерю трафика, которая теоретически может быть вызвана следующими событиями:
+1. Коммутатор доступа будет включен и появится "свет" в волокне на RX, а так же LACP PDU;
+2. Еще не будут до конца запущены и синхронизированы все протоколы между коммутаторами доступа (не забываем, коммутаторы доступа все же собраны в Virtual-Chassis).
+
+А опция ```down 1``` помогла избежать не правильного программирования PFE при отключении "света" на RX в волокне в другом кейсе, связанным с MC-LAG, поэтому осталось как "наследие" навсегда с нами.
+**Часть конфигурации описывающая настройки физических интерфейсов:**
+
+```
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 24;
+        }
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        hold-time up 120000 down 1;
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/1 {
+        hold-time up 120000 down 1;
+        gigether-options {
+            802.3ad ae1;
+        }
+    }
+}
+```
+
+Часть конфигурации описывающая логические настройки интерфейсов для подключения коммутаторов доступа.
+Стоит обратить внимание, что ***для каждого LAG интерфейса в контексте LACP указан уникальный system-id, так как ESI будет напрямую наследован из него***. Не стоит забывать, что ***каждый коммутатор доступа, с точки зрения EVPN, является подключенным к изолированному ES и должен иметь уникальный ESI***.
+**Часть конфигурации описывающая логические настройки интерфейсов:**
+
+```
+interfaces {
     ae0 {
         apply-groups interface-evpn-all-active;
         aggregated-ether-options {
@@ -330,6 +368,14 @@ interfaces {
             }
         }
     }
+}
+```
+
+Часть конфигурации описывающая настройки шлюза по умолчанию.
+Тут ничего не обычного в контексте EVPN all-active - вручную присвоенные ***одинаковые MAC адреса и IPv4 адреса шлюза по умолчанию на AR01 и AR02***, но уникальные для каждого bridge-domain:
+
+```
+interfaces {
     irb {
         arp-l2-validate;
         unit 5 {
@@ -347,6 +393,13 @@ interfaces {
             mac 0a:50:00:00:04:01;
         }
     }
+}
+```
+
+Часть конфигурации описывающая адрес lo0.0 интерфейса и фильтрацию для защиты Control Plane (рекомендую ознакомится самостоятельно, так как описание фильтров выходит за рамки данной заметки):
+
+```
+interfaces {
     lo0 {
         unit 0 {
             description "GRT OSPF";
@@ -359,13 +412,12 @@ interfaces {
         }
     }
 }
+```
+
+***Часть конфигурации описывающая балансировку per-flow с избежанием возможной поляризации трафика:***
+
+```
 forwarding-options {
-    storm-control-profiles default {
-        all {
-            bandwidth-percentage 1;
-            no-registered-multicast;
-        }
-    }
     load-balance {
         per-flow {
             hash-seed;
@@ -380,53 +432,18 @@ policy-options {
             }
         }
     }
-    policy-statement evpn-rt-priority-policy {
-        term 1 {
-            from {
-                family evpn;
-                nlri-route-type 1;
-            }
-            then {
-                bgp-output-queue-priority priority 15;
-            }
-        }
-        term 2 {
-            from {
-                family evpn;
-                nlri-route-type 2;
-            }
-            then {
-                bgp-output-queue-priority priority 11;
-            }
-        }
-        term 3 {
-            from {
-                family evpn;
-                nlri-route-type 3;
-            }
-            then {
-                bgp-output-queue-priority priority 12;
-            }
-        }
-        term 4 {
-            from {
-                family evpn;
-                nlri-route-type 4;
-            }
-            then {
-                bgp-output-queue-priority priority 15;
-            }
-        }
-        term 5 {
-            from {
-                family evpn;
-                nlri-route-type 5;
-            }
-            then {
-                bgp-output-queue-priority priority 11;
-            }
-        }
+}
+routing-options {
+    forwarding-table {
+        export Load_balance;
     }
+}
+```
+
+***Часть конфигурации описывающая BGP политики на import/export, а так же используемые RT:***
+
+```
+policy-options {
     policy-statement vpn-test-without-dhcp-relay_export {
         from protocol direct;
         then {
@@ -452,6 +469,24 @@ policy-options {
     community vpn-test-without-dhcp-relay members target:65535:65535;
     community vpn-test-with-dhcp-relay members target:65534:65534;
 }
+```
+
+Часть конфигурации описывающая RI EVPN VLAN-aware bundle - наконец-то!
+Пойдем по пунктам, для структурированного вида, ведь конфигурации много:
+1. VLAN-aware bundle services можно сконфигурировать только с типом инстанса ```instance-type virtual-switch```;
+2. Опция ```remote-ip-host-routes``` позволяет оптимизировать входящий трафик на шлюз, если это нам будет нужно;
+3. Опция ```label-allocation per-instance``` возволяет сократить утилизацию LFIB;
+4. Опция ```extended-vlan-list``` с указанием vlan-id необходима для корректной работы EVPN VLAN-aware bundle services;
+5. Опция ```default-gateway do-not-advertise``` выключает анонсирование BGP default-gateway community;
+6. Опция ```duplicate-mac-detection``` позволяет бороться с MAC-move;
+7. Перечень логических (LAG) интерфейсов для подключения коммутаторов доступа;
+8. В ```switch-options``` мы задаем требуемые для нас лимиты, для каждого значение уникальное, ***по умолчанию 5120***, чего нам недостаточно;
+9. ```vrf-target``` дожен быть одинаковый между AR01 и AR02 в рамках конкретного инстанса;
+10. Указание bridge-domain (vlans) и routing-interface (l3-interface) в Enterprise style, vlan-id.
+
+***Часть конфигурации описывающая RI EVPN VLAN-aware bundle:***
+
+```
 routing-instances {
     evpn-collapsed-core {
         instance-type virtual-switch;
@@ -496,6 +531,13 @@ routing-instances {
             }
         }
     }
+}
+```
+
+***Часть конфигурации описывающая RI VRF, с указанием L3 интерфейсов, ранее настроенных групп конфигураций и BGP политик:***
+
+```
+routing-instances {
     vpn-test-without-dhcp-relay {
         apply-groups ri-vrf;
         interface irb.5;
@@ -516,10 +558,21 @@ routing-instances {
         vrf-export vpn-test-with-dhcp-relay_export;
     }
 }
+```
+
+Часть конфигурации описывающая параметры глобальные параметры маршрутизации, по пунктам:
+1. Опция ```route-distinguisher-id``` позволяет автоматически назначать route-distinguisher для каждого RI на основе заранее установленного значение, которое равняется RID;
+2. ***Опция ```dynamic-list-next-hop``` нам нужна для EVPN, позволяет улучшить сходимость сети***;
+3. ***Опция ```chained-composite-next-hop``` нам нужна так же для EVPN***, без которой функционирование EVPN не будет возможным. Так же включена и для L3VPN;
+4. RID;
+5. ASn.
+
+***Часть конфигурации описывающая параметры глобальные параметры маршрутизации:***
+
+```
 routing-options {
     route-distinguisher-id 10.100.0.96;
     forwarding-table {
-        export Load_balance;
         dynamic-list-next-hop;
         chained-composite-next-hop {
             ingress {
@@ -529,14 +582,13 @@ routing-options {
         }
     }
     router-id 10.100.0.96;
-    autonomous-system 65535
-    aggregate {
-        defaults {
-            discard;
-        }
-    }
-    protect core;
+    autonomous-system 65535;
 }
+```
+
+***Часть конфигурации описывающая общие параметры для обеспечения работы динамической маршрутизации и MPLS*** (детали на самостоятельное изучение):
+
+```
 protocols {
     ospf {
         backup-spf-options {
@@ -571,64 +623,6 @@ protocols {
         lsa-refresh-interval 30;
         no-rfc-1583;
     }
-    evpn {
-        no-core-isolation; #Одна из самых важных опций для EVPN Collapsed Core - так как у нас BGP сессия overlay EVPN построена между двумя напрямую соединенными устройствами, если вдруг одно из утсройств будет недоступно по тем или иным причиным, порвется BGP сессия, а нам не нужно чтобы клиентские интерфейсы в случае падения BGP сессии тоже упали.
-    }
-    bgp {
-        vpn-apply-export;
-        group internal {
-            type internal;
-            local-address 10.100.0.96;
-            family inet-vpn {
-                unicast {
-                    output-queue-priority priority 3;
-                    route-refresh-priority priority 3;
-                }
-            }
-            family route-target {
-                output-queue-priority priority 16;
-                route-refresh-priority priority 16;
-            }
-            peer-as 65535;
-            local-as 65535;
-            neighbor 10.100.0.243;
-            neighbor 10.100.0.244;
-        }
-        group evpn-collapsed-core { ## а вот и сама группа пиринга с соседним устройством в кампусе.
-            type internal;
-            local-address 10.100.0.96;
-            family evpn {
-                signaling {
-                    output-queue-priority priority 11;
-                    route-refresh-priority priority 11;
-                }
-            }
-            family route-target {
-                output-queue-priority priority 16;
-                route-refresh-priority priority 16;
-            }
-            peer-as 65535;
-            local-as 65535;
-            bfd-liveness-detection {
-                minimum-interval 1000;
-                multiplier 3;
-                session-mode automatic;
-            }
-            neighbor 10.100.0.97;
-        }
-        local-preference 350;
-        mtu-discovery;
-        log-updown;
-        damping;
-        export evpn-rt-priority-policy;
-        graceful-restart {
-            disable;
-        }
-        multipath;
-        multipath-build-priority {
-            low;
-        }
-    }
     ldp {
         auto-targeted-session;
         track-igp-metric;
@@ -657,17 +651,80 @@ protocols {
             disable;
         }
     }
-    lldp {
-        port-id-subtype interface-name;
-        interface all;
+}
+```
+
+Часть конфигурации необходимая для правильной работы EVPN Collapsed Core - так как у нас BGP сессия с AF EVPN построена между двумя напрямую соединенными устройствами (на RRs нет смысла отдавать все маршруты EVPN) и если вдруг одно из устройств будет недоступно по тем или иным причиным, порвется BGP сессия, как следствие на "живом" устройстве отключаться все ES в сторону коммутаторов доступа, а это нам не нужно.
+***Часть конфигурации необходимая для правильной работы EVPN Collapsed Core:***
+
+```
+protocols {
+    evpn {
+        no-core-isolation;
     }
-    lldp-med {
-        interface all;
+}
+```
+
+Часть конфигурации описывающая настройки BGP, пройдемся по пунктам:
+1. ```vpn-apply-export``` переопределяет выбор маршрутов BGP полученных из RI VRF, не обязателен, но настроен заранее, так как на практике из AR могут попросить сделать BGP Peering Point :);
+2. Группа ```internal``` - iBGP, нужна для обеспечения функционирования L3VPN, в этой группе так же есть AF rtarget для снижения нагрузки на Control Plane, все соседи являются RR;
+3. Группа ```group evpn-collapsed-core``` - iBGP, нужна для обеспечения функционирования EVPN Collapsed Core, в этой группе так же есть AF rtarget для снижения нагрузки на Control Plane (настроено заранее чтобы не дергать BGP сессию, если вдруг придется растягивать L2 домен не через RRs), единственным соседом является одноранговое устройство на площадке, так же включен BFD для EVPN для быстрого детектирования проблем с соседом и как следствие изьятия префиксов;
+4. Параметр ```local-preference``` на обоих AR одинаковый для обеспечения работы из других сегментов multipath к обоим AR;
+5. ```graceful-restart``` выключен для ускорения сходимости сети в случае аварии, так как в L3VPN для сессий с RRs не настроен BFD для экономии ресурсов Control Plane виртуальных RRs;
+6. Собственно ```multipath``` для обспечения работы multipath;
+7. Опция ```multipath-build-priority``` позволяет выбрать экономить ли ресурсы Control Plane во время рассчета multipath или нет.
+
+```
+protocols {
+    bgp {
+        vpn-apply-export;
+        group internal {
+            type internal;
+            local-address 10.100.0.96;
+            family inet-vpn {
+                unicast;
+            }
+            family route-target;
+            peer-as 65535;
+            local-as 65535;
+            neighbor 10.100.0.243;
+            neighbor 10.100.0.244;
+        }
+        group evpn-collapsed-core {
+            type internal;
+            local-address 10.100.0.96;
+            family evpn {
+                signaling;
+            }
+            family route-target;
+            peer-as 65535;
+            local-as 65535;
+            bfd-liveness-detection {
+                minimum-interval 1000;
+                multiplier 3;
+                session-mode automatic;
+            }
+            neighbor 10.100.0.97;
+        }
+        local-preference 350;
+        mtu-discovery;
+        log-updown;
+        damping;
+        graceful-restart {
+            disable;
+        }
+        multipath;
+        multipath-build-priority {
+            low;
+        }
     }
 }
 ```
 
 **AR02**:
+
+***Конфигурация целиком:***
+
 ```
 version 19.3R3.6;
 groups {
@@ -828,7 +885,7 @@ system {
         protocols {
             dhcpv4 {
                 aggregate {
-                    flow-level-detection { ## Warning: 'flow-level-detection' is deprecated
+                    flow-level-detection {
                         subscriber on;
                         logical-interface on;
                         physical-interface on;
@@ -980,53 +1037,6 @@ policy-options {
         term 1 {
             then {
                 load-balance per-packet;
-            }
-        }
-    }
-    policy-statement evpn-rt-priority-policy {
-        term 1 {
-            from {
-                family evpn;
-                nlri-route-type 1;
-            }
-            then {
-                bgp-output-queue-priority priority 15;
-            }
-        }
-        term 2 {
-            from {
-                family evpn;
-                nlri-route-type 2;
-            }
-            then {
-                bgp-output-queue-priority priority 11;
-            }
-        }
-        term 3 {
-            from {
-                family evpn;
-                nlri-route-type 3;
-            }
-            then {
-                bgp-output-queue-priority priority 12;
-            }
-        }
-        term 4 {
-            from {
-                family evpn;
-                nlri-route-type 4;
-            }
-            then {
-                bgp-output-queue-priority priority 15;
-            }
-        }
-        term 5 {
-            from {
-                family evpn;
-                nlri-route-type 5;
-            }
-            then {
-                bgp-output-queue-priority priority 11;
             }
         }
     }
@@ -1183,15 +1193,9 @@ protocols {
             type internal;
             local-address 10.100.0.96;
             family inet-vpn {
-                unicast {
-                    output-queue-priority priority 3;
-                    route-refresh-priority priority 3;
-                }
+                unicast;
             }
-            family route-target {
-                output-queue-priority priority 16;
-                route-refresh-priority priority 16;
-            }
+            family route-target;
             peer-as 65535;
             local-as 65535;
             neighbor 10.100.0.243;
@@ -1201,15 +1205,9 @@ protocols {
             type internal;
             local-address 10.100.0.96;
             family evpn {
-                signaling {
-                    output-queue-priority priority 11;
-                    route-refresh-priority priority 11;
-                }
+                signaling;
             }
-            family route-target {
-                output-queue-priority priority 16;
-                route-refresh-priority priority 16;
-            }
+            family route-target;
             peer-as 65535;
             local-as 65535;
             bfd-liveness-detection {
@@ -1223,7 +1221,6 @@ protocols {
         mtu-discovery;
         log-updown;
         damping;
-        export evpn-rt-priority-policy;
         graceful-restart {
             disable;
         }
