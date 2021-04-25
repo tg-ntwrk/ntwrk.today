@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Build your own VPN node with Traefik v2, MTProto, WireGuard and BIRD 2.0 / Part 1"
+title: "Build your own VPN node with Traefik v2, MTProto Proxy, WireGuard and BIRD 2.0 / Part 1"
 tags: linux docker traefik telegram mtproto wireguard bird
 author: "github:freefd"
 ---
@@ -27,7 +27,7 @@ Overall diagram:
 The server side platform doesn't matter as we use containerization. For this article use [Ubuntu Server 20.04 LTS](https://releases.ubuntu.com/20.04/) <sup id="a13">[13](#f13)</sup> as platform and [Docker](https://www.docker.com/) <sup id="a14">[14](#f14)</sup> with [Docker Compose](https://docs.docker.com/compose/) <sup id="a15">[15](#f15)</sup> for simple containers orchestration. Let me describe components one by one.
 
 ### Docker and Docker Compose
-Docker has been installed from standard system repositories along with Docker Compose. The installation will contain four services: BIDR 2.0, WireGuard and NAT will be packed into single container with [supervisord](http://supervisord.org/) <sup id="a16">[16](#f16)</sup> to run multiple services, Traefik v2, MTProto Proxy and Simple HTTP service will run as independent containers. Docker Compose helps us to orchestrate microservices topology, Compose 2.4 specification will be used as there we still able to [create networks with names and gateways](https://github.com/docker/compose/issues/6569) <sup id="a17">[17](#f17)</sup>.
+Docker has been installed from standard system repositories along with Docker Compose. The installation will contain four services: BIRD 2.0, WireGuard and NAT will be packed into single container with [supervisord](http://supervisord.org/) <sup id="a16">[16](#f16)</sup> to run multiple services, Traefik v2, MTProto Proxy and Simple HTTP service will run as independent containers. Docker Compose helps us to orchestrate microservices topology, Compose 2.4 specification will be used as there we still able to [create networks with names and gateways](https://github.com/docker/compose/issues/6569) <sup id="a17">[17](#f17)</sup>.
 
 Of course, we would love to use [Podman](https://podman.io/) <sup id="a18">[18](#f18)</sup> instead of Docker, however, at the time of writing, the Traefik v2 is still [not fully compatible](https://github.com/traefik/traefik/issues/5730) <sup id="a19">[19](#f19)</sup> with Podman.
 
@@ -57,7 +57,7 @@ BIRD 2.0 works in pair with WireGuard client to create automated routing scheme 
 
 ![CPE Boot Up Sequence](/images/2021-04-19-vpn-node-on-your-own-2.png)
 
-Part 2 explains server side configuration.
+[Part 2](/2021/04/20/vpn-node-on-your-own-part-2.html) explains server side configuration.
 
 ## References
 <b id="f1">1</b>. [Virtual Private Network](https://en.wikipedia.org/wiki/Virtual_private_network) [↩](#a1)<br/>
