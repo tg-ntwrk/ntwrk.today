@@ -559,14 +559,14 @@ In a few seconds after we can check Traefik status by login into Traefik dashboa
 
 This information can also be collected through [API](https://en.wikipedia.org/wiki/API) <sup id="a29">[29](#f29)</sup> we pre-enabled in the Traefik configuration. The entry points:
 ```
-curl -su ntwrk:_ntVVrk$T0d4Y https://dashboard.ntwrk.today/api/entrypoints | jq '.[] | "\(.name) \(.address)"' -r | column -t
+curl -su 'ntwrk:_ntVVrk$T0d4Y' https://dashboard.ntwrk.today/api/entrypoints | jq '.[] | "\(.name) \(.address)"' -r | column -t
 http       :80/tcp
 https      :443/tcp
 wireguard  :443/udp
 ```
 And routers table where the columns are Entry Points, TLS, Rule, Name, Status:
 ```
-for proto in http tcp udp; do curl -su ntwrk:_ntVVrk$T0d4Y https://dashboard.ntwrk.today/api/$proto/routers | jq '.[] | "\(.entryPoints[]) \(.tls) \(.rule) \(.name) \(.status)"' -r; done | column -t | sort -k4
+for proto in http tcp udp; do curl -su 'ntwrk:_ntVVrk$T0d4Y' https://dashboard.ntwrk.today/api/$proto/routers | jq '.[] | "\(.entryPoints[]) \(.tls) \(.rule) \(.name) \(.status)"' -r; done | column -t | sort -k4
 http       null                           hostregexp(`{host:.+}`)        http-catchall@docker  enabled
 https      {"passthrough":true}           HostSNI(`duckduckgo.com`)      mtg@docker            enabled
 https      {"certResolver":"leresolver"}  Host(`dashboard.ntwrk.today`)  traefik@docker        enabled
