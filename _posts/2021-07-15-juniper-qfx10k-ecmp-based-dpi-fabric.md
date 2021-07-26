@@ -24,7 +24,7 @@ author: "somovis"
 
 Вот так выглядит целевая схема DPI блока СПД:
 ![target scheme png](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric.png)
-[Целевая схема в PDF](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric.pdf)
+[Целевая схема в PDF](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric.pdf)<br/>
 Если ты, уважаемый читатель, сразу ее понял и во всем разобрался, то можешь далее не читать. Но если же тебе интересно, то милости прошу под кат.
 
 *Хочу обратить внимание, что данное техническое решение прорабатывалось в начале 2020 года, а схема тестировалась на разных платформах и моделях разных производителей, но сейчас уже появилось более дешевое/новое оборудование или обновление ПО для более дешевого оборудования того же производителя, которое тоже подходит для решения данной задачи, при этом, некоторое протестированное оборудование уже может быть недоступно для заказа.*
@@ -115,7 +115,7 @@ author: "somovis"
 Спасибо name1 за вычитку и правки
 
 ## Ссылки
-<b id="f1">1</b>. [Отличный доклад Игоря Васильева про балансировку трафика](https://www.youtube.com/watch?v=iZavvatyDb8)
-<b id="f2">2</b>. [Отличная статья про ECMP и балансировку в ДЦ от Марата Сибгатулина](https://linkmeup.ru/blog/903/)
-<b id="f3">3</b>. [И еще одна статья от Марата Сибгатулина, но уже про дизайн сетей в ДЦ](https://linkmeup.ru/blog/1261/)
-<b id="f4">4</b>. [BGP Link Bandwidth Extended Community](https://datatracker.ietf.org/doc/html/draft-ietf-idr-link-bandwidth-07)
+<b id="f1">1</b>. [Отличный доклад Игоря Васильева про балансировку трафика](https://www.youtube.com/watch?v=iZavvatyDb8)<br/>
+<b id="f2">2</b>. [Отличная статья про ECMP и балансировку в ДЦ от Марата Сибгатулина](https://linkmeup.ru/blog/903/)<br/>
+<b id="f3">3</b>. [И еще одна статья от Марата Сибгатулина, но уже про дизайн сетей в ДЦ](https://linkmeup.ru/blog/1261/)<br/>
+<b id="f4">4</b>. [BGP Link Bandwidth Extended Community](https://datatracker.ietf.org/doc/html/draft-ietf-idr-link-bandwidth-07)<br/>
