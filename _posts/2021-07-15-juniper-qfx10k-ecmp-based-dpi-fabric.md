@@ -25,7 +25,7 @@ author: "somovis"
 Вот так выглядит целевая схема DPI блока СПД:
 ![target scheme png](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric.png)
 [Целевая схема в PDF](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric.pdf)<br/>
-Если ты, уважаемый читатель, сразу ее понял и во всем разобрался, то можешь далее не читать. Но если же тебе интересно, то милости прошу под кат.
+Если ты, уважаемый читатель, сразу ее понял и во всем разобрался, то можешь далее не читать. Но если у тебя остались еще вопросы, то милости прошу под кат.
 
 *Хочу обратить внимание, что данное техническое решение прорабатывалось в начале 2020 года, а схема тестировалась на разных платформах и моделях разных производителей, но сейчас уже появилось более дешевое/новое оборудование или обновление ПО для более дешевого оборудования того же производителя, которое тоже подходит для решения данной задачи, при этом, некоторое протестированное оборудование уже может быть недоступно для заказа.*
 
@@ -91,14 +91,25 @@ author: "somovis"
 ![scale-out](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric_scale-out.png)
 
 #### Cluster
+![cluster](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric_cluster.png)
 
 #### MC-LAG L2 Transparent
-
+![mlag-l2-transparent](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric_mlag-l2-transparent.png)
 #### MC-LAG L2 Switched
+![mlag-l2-switched](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric_mlag-l2-switched.png)
 
 #### MC-LAG L3 Routed w/ BGP
+![mlag-l3-routed](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric_mlag-l3-routed.png)
 
 #### ECMP w/ BGP
+![ecmp-v1](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric_ecmp-v1.png)
+
+![ecmp-v2](/images/2021-07-15-juniper-qfx10k-ecmp-based-dpi-fabric_ecmp-v2.png)
+
+
+##### Tunneling GRE/IP-IP
+
+##### BGP communities
 
 ## Проблемы
 
