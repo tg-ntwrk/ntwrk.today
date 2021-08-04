@@ -1898,10 +1898,6 @@ protocols {
         lsa-refresh-interval 30;
         no-rfc-1583;
     }
-    l2-learning {
-        global-mac-table-aging-time 300;
-        global-mac-ip-table-aging-time 300;
-    }
     lldp {
         port-id-subtype interface-name;
         neighbour-port-info-display port-id;
