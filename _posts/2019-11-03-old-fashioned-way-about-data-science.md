@@ -7,6 +7,9 @@ author: "github:freefd"
 
 The usual Pythonic way to get a data series is sometimes not the fastest. In some cases, it's enough to have only 3-6 Linux CLI tools to get a necessary data from Web and parse it in a proper way. Let's look at such an approach on how to count the number of released RFC's per year and draw the graph in a terminal.
 
+## Update History
+* 2022-02-06: Improved escaping of special characters in awk delimiter as this didn't work for the gawk implementation.
+
 ## All you need is text
 The important question at the start is always "Where can I get the data source?". Fortunately, in 2019<sup>th</sup> you can find the organized list for [all of RFCs](https://www.rfc-editor.org/) <sup id="a1">[1](#f1)</sup>.
 
@@ -40,7 +43,7 @@ and we can extract the date information using [awk](https://pubs.opengroup.org/o
 0508 Real-time data transmission on the ARPANET L. Pfeifer, J. McAfee [ May 1973 ] (TXT, HTML) (Status: UNKNOWN) (Stream: Legacy) (DOI: 10.17487/RFC0508)
 0509 Traffic statistics (April 1973) A.M. McKenzie [ April 1973 ] (TXT, HTML) (Status: UNKNOWN) (Stream: Legacy) (DOI: 10.17487/RFC0509)
 
-~> awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries
+~> awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries
  June 1973 
  May 1973 
  April 1973 
@@ -50,29 +53,29 @@ Please note that `^[0-9][0-9][0-9][0-9]` is used instead of `^[0-9]{4}` because 
 Since now we able to extract human-readable dates, let's convert them to numeric format with [date](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/date.html) <sup id="a6">[6](#f6)</sup> utility during implicit loop given from [xargs](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/xargs.html) <sup id="a7">[7](#f7)</sup>:
 ```bash
 ~> # Years extraction
-~> awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%Y"
+~> awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%Y"
 1973
 1973
 1973
 ~> # Months extraction
-~> awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%m"
+~> awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%m"
 06
 05
 04
 ```
 The next simple step is sorting ([sort](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/sort.html) <sup id="a8">[8](#f8)</sup> tool) and counting unique ([uniq](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/uniq.html) <sup id="a9">[9](#f9)</sup> tool) values:
 ```bash
-~> awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%Y" | sort -n | uniq -c
+~> awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%Y" | sort -n | uniq -c
       3 1973
 
-~> awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%m" | sort -n | uniq -c
+~> awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' test-entries | xargs -I {} env TZ=Europe/London date -d'01 {}' +"%m" | sort -n | uniq -c
       1 04
       1 05
       1 06
 ```
 We're ready to put it all together over pipes:
 ```bash
-~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c
+~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c
       1 1968
      25 1969
      58 1970
@@ -103,7 +106,7 @@ gnuplot -e "set term dumb size 145, 25; set xtics 3; plot '-' with lines notitle
 It'll read the STDIN stream and draw a 145x25 graph right in the terminal. Putting it all together one more time:
 
 ```bash
-~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c | gnuplot -e "set term dumb size 145, 25; set xtics 3; plot '-' with lines notitle"
+~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c | gnuplot -e "set term dumb size 145, 25; set xtics 3; plot '-' with lines notitle"
 line 52: warning: Too many axis ticks requested (>2e+02)
 
                                                                                                                                                  
@@ -132,7 +135,7 @@ line 52: warning: Too many axis ticks requested (>2e+02)
 ```
 As you can see, something is going wrong. This is because gnuplot expects the first column as the X-axis and the second as the Y-axis. We need to swap our columns with each other:
 ```bash
-~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c | awk '{print $2" "$1}'
+~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c | awk '{print $2" "$1}'
 1968 1
 1969 25
 1970 58
@@ -155,7 +158,7 @@ As you can see, something is going wrong. This is because gnuplot expects the fi
 ```
 And rerun our graph plotting:
 ```bash
-~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c | awk '{print $2" "$1}' | gnuplot -e "set term dumb size 145, 25; set xtics 3; plot '-' with lines notitle"
+~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%Y" | sort -n | uniq -c | awk '{print $2" "$1}' | gnuplot -e "set term dumb size 145, 25; set xtics 3; plot '-' with lines notitle"
 
                                                                                                                                                  
   500 +--------------------------------------------------------------------------------------------------------------------------------------+   
@@ -184,7 +187,7 @@ And rerun our graph plotting:
 ```
 Now it looks nice. For months statistics we see the expected deviations for July and November/December, the most productivity release dates are in March/April:
 ```bash
-~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\[|\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%m" | sort -n | uniq -c | awk '{print $2" "$1}' | gnuplot -e "set term dumb size 145, 25; set xtics 1; set ytics 40; plot '-' notitle smooth csplines"
+~> w3m -cols 1024 -dump https://www.rfc-editor.org/rfc-index.html | awk -F'[\\[|\\]]' '/^[0-9][0-9][0-9][0-9]/ && !/Not Issued/{print $2}' | xargs -I {} env TZ=Europe/London date -d'01{}' +"%m" | sort -n | uniq -c | awk '{print $2" "$1}' | gnuplot -e "set term dumb size 145, 25; set xtics 1; set ytics 40; plot '-' notitle smooth csplines"
 
                                                                                                                                                  
   840 +--------------------------------------------------------------------------------------------------------------------------------------+   
