@@ -14,18 +14,22 @@ layout: default
   {{ page.date | date_to_string }}
   {% if page.author %}
     {% assign sites = "github,fb,twitter,vk" | split: ',' %}
-    {% for site in sites %}
-        {% assign current_site = page.author | split: ':' | first %}
-        {% if current_site == site %}
-            {% assign matched = true %}
-            {% break %}
-        {% endif %}
+    {% assign authors = page.author | replace: ' ', '' | split: ',' %}
+    {% for current_author in authors %}
+      {% for site_prefix in sites %}
+          {% assign current_site = current_author | split: ':' | first %}
+          {% if current_site == site_prefix %}
+              {% assign matched = true %}
+              {% break %}
+          {% endif %}
+      {% endfor %}
+      {% if matched %}
+      - <a target="_blank" href="https://{{ current_site }}.com/{{ current_author | split: ':' | last }}">{{ current_author | split: ':' | last }}</a> 
+        {% assign matched = false %}
+      {% else %}
+      - <a target="_blank" href="https://t.me/{{ current_author }}">{{ current_author }}</a> 
+      {% endif %}
     {% endfor %}
-    {% if matched %}
-    - <a target="_blank" href="https://{{ current_site }}.com/{{ page.author | split: ':' | last }}">{{ page.author | split: ':' | last }}</a> 
-    {% else %}
-    - <a target="_blank" href="https://t.me/{{ page.author }}">{{ page.author }}</a> 
-    {% endif %}
   {% endif %}
 </p>
 {% include share-buttons.html %}
