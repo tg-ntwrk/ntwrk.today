@@ -4,7 +4,7 @@ layout: default
 <h1>{{ page.title }}</h1>
 <p>
   {% comment %}
-    You could use "author" tag with a predefined list of resources: github, fb, twitter and vk
+    You could use "author" tag with a predefined list of resources: github, twitter and vk
     The record "github:username" will be converted into "https://github.com/username"
 
     The same applies to other allowed resources in the list. All other possible prefixes will be
@@ -13,7 +13,7 @@ layout: default
 
   {{ page.date | date_to_string }}
   {% if page.author %}
-    {% assign sites = "github,fb,twitter,vk" | split: ',' %}
+    {% assign sites = "github,twitter,vk" | split: ',' %}
     {% assign authors = page.author | replace: ' ', '' | split: ',' %}
     {% for current_author in authors %}
       {% for site_prefix in sites %}
