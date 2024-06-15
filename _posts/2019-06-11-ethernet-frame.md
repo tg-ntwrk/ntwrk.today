@@ -6,7 +6,7 @@ tags: layer2
 
 Ethernet II packet and frame structure
 
-![Ethernet II frame](/images/ethernet-frame.png)
+![Ethernet II frame]({{ site.baseurl }}/images/ethernet-frame.png)
 
 - **Preamble** - the preamble of an Ethernet packet consists of a 56-bit (seven-byte) pattern of alternating 1 and 0 bits, allowing devices on the network to easily synchronize their receiver clocks
 - **SFD** - a 1 byte value that marks the end of the preamble, which is the first field of an Ethernet packet, and indicates the beginning of the Ethernet frame
