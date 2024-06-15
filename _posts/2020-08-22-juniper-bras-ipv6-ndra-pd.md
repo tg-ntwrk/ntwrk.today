@@ -22,7 +22,7 @@ IPv6 продолжает расширять свое присутствие, р
 * Блоки адресов для клиентов резервируются с конца выделенного адресного пространства;
 * Если клиенту выделяется блок какого-либо размера, рядом резервируется дополнительный блок такого же размера, если клиенту в будущем понадобятся дополнительные адреса. Это удобно и с точки зрения агрегации, два меньших блока легко можно агрегировать в один, при этом адресация клиента не будет перемещаться по IP plan.
 
-  ![Addressing_sceme](/images/ipv6-addressing-scheme.png)
+  ![Addressing_sceme]({{ site.baseurl }}/images/ipv6-addressing-scheme.png)
 
 На момент написания статьи используемая на [BRAS](https://en.wikipedia.org/wiki/Broadband_remote_access_server) <sup id="a3">[3](#f3)</sup> версия [Junos® OS 17.3R3-S3](https://kb.juniper.net/InfoCenter/index?page=content&id=TSB17512&cat=&actp=LIST) <sup id="a5">[5](#f5)</sup>.
 
@@ -32,7 +32,7 @@ IPv6 продолжает расширять свое присутствие, р
 
 Изначально была выбрана схема доступа [DHCPv6 IA_NA and DHCPv6 Prefix Delegation](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/dhcpv6-iana-prefix-delegation-addressing.html) <sup id="a9">[9](#f9)</sup>, когда адрес [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейса [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> и выделяемый клиенту префикс раздаются DHCP сервером:
 
-  ![IA_NA_PD](/images/IA_NA_PD.gif)
+  ![IA_NA_PD]({{ site.baseurl }}/images/IA_NA_PD.gif)
 
 ### Junos® OS конфигурация
 
@@ -384,7 +384,7 @@ access {
 
 В дальнейшем схема доступа была заменена на [NDRA-PD](https://www.juniper.net/documentation/en_US/junos/topics/topic-map/ipv6-addressing-subscriber-access-designs.html#id-design-2-ipv6-addressing-with-ndra-and-dhcpv6-prefix-delegation) <sup id="a17">[17](#f17)</sup>, в которой [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> получает [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> адрес сразу при [Neighbor Discovery](https://en.wikipedia.org/wiki/Neighbor_Discovery_Protocol) <sup id="a18">[18](#f18)</sup>, а затем по DHCP запрашивается префикс для клиента. Также было принято решение раздавать клиентским [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> на [WAN](https://en.wikipedia.org/wiki/Wide_area_network) <sup id="a10">[10](#f10)</sup> интерфейсы адреса из диапазона [ULA fc00::/7](https://en.wikipedia.org/wiki/Unique_local_address) <sup id="a19">[19](#f19)</sup>. Такая адресация маршрутизируется только в пределах организации и этим решается вопрос отсутствия видимости [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в глобальной таблице маршрутизации без потери возможности управления [CPE](https://en.wikipedia.org/wiki/Customer-premises_equipment) <sup id="a11">[11](#f11)</sup> в рамках интернет-провайдера:
 
-  ![NDRA_PD](/images/NDRA_PD.gif)
+  ![NDRA_PD]({{ site.baseurl }}/images/NDRA_PD.gif)
 
 > **Внимание**: По правилам использования ULA адресов из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> следует генерировать уникальный префикс. Для автора важнее удобство запоминания и кодирования структуры сети в адресе, рекомендацией из [RFC4193](https://tools.ietf.org/html/rfc4193) <sup id="a20">[20](#f20)</sup> было решено пренебречь.
 

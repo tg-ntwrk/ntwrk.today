@@ -6,7 +6,6 @@ tags: sflow
 
 Juniper QFX10002-72 switch sflow diagram.
 
-![Sflow diagram](/images/qfx10k-sflow.png)
+![Sflow diagram]({{ site.baseurl }}/images/qfx10k-sflow.png)
 
-[PDF version](/images/qfx10k-sflow.pdf)
-
+[PDF version]({{ site.baseurl }}/images/qfx10k-sflow.pdf)

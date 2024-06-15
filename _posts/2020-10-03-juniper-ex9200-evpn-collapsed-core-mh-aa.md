@@ -31,7 +31,7 @@ An EVPN Framework for Campus Networks](https://www.juniper.net/assets/us/en/loca
 
 ## Топология
 
-![Topology](/images/2020-10-03-juniper-ex9200-evpn-collapsed-core-mh-aa-topology.png)
+![Topology]({{ site.baseurl }}/images/2020-10-03-juniper-ex9200-evpn-collapsed-core-mh-aa-topology.png)
 
 ## Плюсы и минусы в сравнении с MC-LAG
 

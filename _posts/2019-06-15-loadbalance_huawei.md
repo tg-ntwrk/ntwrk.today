@@ -127,5 +127,6 @@ author: "riddler63"
 Переход на более скоростную технологию передачи данных (1G -> 2.5G -> 5G -> 10G -> 25G -> 40G -> 50G -> 100G -> 200G -> 400G...) почти всегда лучше, чем попытки реализовать балансировку на сложной логике.
 
 ## Ссылки
+
 <b id="f1">1</b>. RFC 6391: [https://tools.ietf.org/html/rfc6391](https://tools.ietf.org/html/rfc6391) [↩](#a1)<br/>
 <b id="f2">2</b>. RFC 6790: [https://tools.ietf.org/html/rfc6790](https://tools.ietf.org/html/rfc6790) [↩](#a2)<br/>

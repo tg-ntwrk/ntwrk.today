@@ -25,7 +25,7 @@ drop-profiles {
 ```
 Сегментный Drop-профиль:
 
-![Segmented Drop Profile](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-01.gif)
+![Segmented Drop Profile]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-01.gif)
 
 Интерполированные создают 64 точки между значениями (0,0) и (100, 100), включая настроенные точки.
 ```
@@ -41,7 +41,7 @@ drop-profiles {
 
 Интерполированный Drop-профиль:
 
-![Interpolated Drop Profile](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-02.gif)
+![Interpolated Drop Profile]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-02.gif)
 
 ## Лабораторные опыты
 
@@ -66,7 +66,7 @@ set drop-profiles aggessive fill-level 30 drop-probability 90
 set schedulers sch-bc drop-profile-map loss-priority any protocol any drop-profile aggressive
 ```
 
-![image03](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-03.png)
+![image03]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-03.png)
 
 Влияние drop-профиля на трафик очевидно, но сам вид drop-профиля при этом скрыт от нас. Все пакеты первого опыта одинаковы и безымянны, мы видим только их объём и время прибытия на приёмник. Определить вероятность отбрасывания конкретного отправленного пакета от наполненности буфера таким образом нельзя.
 
@@ -96,13 +96,13 @@ drop-10-20-30 {
 
 По оси абсцисс время в миллисекундах, по оси ординат – вероятность потери пакета, посланного в данный интервал.
 
-![image04](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-04.png)
+![image04]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-04.png)
 
 Следует учесть, что нам нельзя получить реальную наполненность буфера в момент прихода на маршрутизатор конкретных пакетов для построения полноценного графика drop-профиля. Остаётся только опираться на тот факт, что наполненность буфера будет расти, если входящий трафик превышает ограничение отправки. При включении очередной ступени drop-профиля приходящие пакеты начнут отбрасываться и скорость наполнения буфера снизится, что должно вызывать «растягивание» графика по оси абсцисс. При 100% наполненности буфера вероятность отбрасывания пакетов не может превышать отношение скоростей приходящего трафика и настроенной скорости отправки пакетов.
 
 Точности графика мешает неравномерность отправки трафика программой tcpreplay в начальный период времени (Python + scapy даёт ещё большую неравномерность).
 
-![image05](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-05.png)
+![image05]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-05.png)
 
 График отправки пакетов командой `tcpreplay -i ens256 -p 100000  --preload-pcap dump_80mbit_3sec_1ms_interval.pcapng`
  
@@ -118,7 +118,7 @@ drop-inter-10-20-30 {
 }
 ```
 
-![image06](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-06.png)
+![image06]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-06.png)
 
 Первая три точки интерполированного профиля (0-0, 20-10, 40-20) составляют прямую линию, но на графике вероятности отбрасывания пакетов мы видим ожидаемое «растягивание» графика по оси абсцисс. Пакеты начинают отбрасываться практически сразу, т.к. при 2% наполнении буфера такой drop-профиль должен отбрасывать 1% пакетов.
 
@@ -132,7 +132,7 @@ drop-inter-1-20-30 {
 }
 ```
 
-![image07](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-07.png)
+![image07]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-07.png)
 
 ### Опыт 5
 Попробуем сделать пологий график.
@@ -144,7 +144,7 @@ drop-inter-1-5-10-30 {
     }
 }
 ```
-![image08](/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-08.png)
+![image08]({{ site.baseurl }}/images/2020-05-08-visualization-of-drop-profiles-juniper-mx-08.png)
 
 ## Ссылки
 <b id="f1">1</b>. [RED Drop Profiles Overview

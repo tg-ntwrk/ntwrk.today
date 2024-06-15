@@ -9,7 +9,7 @@ author: "slepwin"
 
 ## Сетевая топология
 
-![RPKI-network-diagram](/images/2020-04-13-rpki-network-diagram.png)
+![RPKI-network-diagram]({{ site.baseurl }}/images/2020-04-13-rpki-network-diagram.png)
 
 ## Установка и настройка RIPE Validator + RTR Server
 

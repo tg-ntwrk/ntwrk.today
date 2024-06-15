@@ -20,7 +20,7 @@ show configuration protocols mpls explicit-null
 explicit-null;
 ```
 В дампе видно только сервисную метку:
-![explicit-php](/images/explicit-b2b-php.png)
+![explicit-php]({{ site.baseurl }}/images/explicit-b2b-php.png)
 
 ### UHP
 В режиме UHP транспортная метка есть всегда и она не нулевая. Также между Juniper MX можно организовать несколько параллельных UHP LSP, добавив вариативности.
@@ -63,7 +63,7 @@ interface ae5.352;
 
 Дамп:
 
-![explicit-uhp](/images/uhp-b2b.png)
+![explicit-uhp]({{ site.baseurl }}/images/uhp-b2b.png)
 
 ### UHP + EL
 Попытка добавить ещё одну метку для большей вариативности заканчивается ошибкой валидации:

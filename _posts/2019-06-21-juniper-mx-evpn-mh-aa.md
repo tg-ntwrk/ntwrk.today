@@ -50,7 +50,7 @@ EVPN использует новое BGP NLRI, именуемое EVPN NLRI. Э�
 
 ## Топология
 
-![Topology](/images/juniper-mx-evpn-mh-aa-topology.png)
+![Topology]({{ site.baseurl }}/images/juniper-mx-evpn-mh-aa-topology.png)
 
 ## Пример конфигурации
 

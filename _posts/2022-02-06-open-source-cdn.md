@@ -17,11 +17,11 @@ author: github:freefd, DmitryZaytsev
 
 Упрощённое объяснение разницы между классическим распространением контента с единичного сервера:
 
-![NOCDN](/images/2022-02-06-open-source-cdn-1.png)
+![NOCDN]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-1.png)
 
 и через CDN:
 
-![CDN](/images/2022-02-06-open-source-cdn-2.png)
+![CDN]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-2.png)
 
 
 ## Составляющие CDN для ACME
@@ -72,7 +72,7 @@ author: github:freefd, DmitryZaytsev
 
 ## Архитектурная схема CDN для ACME
 
-![ACME CDN Architecture](/images/2022-02-06-open-source-cdn-3.png)
+![ACME CDN Architecture]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-3.png)
 
 Как видно на схеме, коммуникации Cache <-> Precache выполняются в формате Active-Active.
 
@@ -83,7 +83,7 @@ author: github:freefd, DmitryZaytsev
 
 Подробней про HLS/DASH и ABR можно прочесть в [What’s HTTP Live Streaming](https://medium.com/@shoheiyokoyama/whats-http-live-streaming-8821d299ac04) <sup id="a24">[24 (EN)](#f24)</sup>. Общую последовательность запросов можно представить как
 
-![ACME CDN Traffic Flow](/images/2022-02-06-open-source-cdn-5.png)
+![ACME CDN Traffic Flow]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-5.png)
 
 Важно заметить, что master и media манифесты не всегда обязан предоставлять Origin, порой это может быть совершенно отдельный ресурс. В этом случае Origin от конечного пользователя полностью скрыт CDN.
 
@@ -91,7 +91,7 @@ author: github:freefd, DmitryZaytsev
 
 ### Упрощённая сетевая схема примера подключения Cache сервера к Router
 
-![ACME CDN Cache to Router connectivity](/images/2022-02-06-open-source-cdn-6.png)
+![ACME CDN Cache to Router connectivity]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-6.png)
 ### BGP: Juniper MX
 
 Примеры настроек [BGP](https://ru.wikipedia.org/wiki/Border_Gateway_Protocol) <sup id="a25">[25](#f25)</sup>- и [BFD](https://en.wikipedia.org/wiki/Bidirectional_Forwarding_Detection) <sup id="a26">[26 (EN)](#f26)</sup>-сессий для [Juniper MX](https://www.juniper.net/ru/ru/products/routers/mx-series.html) <sup id="a27">[27](#f27)</sup> в классическом **``show configuration``** формате:
@@ -671,26 +671,26 @@ server {
 Для мониторинга характеристик CDN используется Zabbix с агентом на хостах. С каждого CDN Cache'ра и CDN Precache'ра помимо стандартных метрик, дополнительно снимаются метрики утилизации кеша Nginx, общее количество дискового пространства кеша Nginx, эффективность кеширования.
 
 Создан хост **``cdn.tv.acme.tld``** с суммирующими данные с CDN Cache'ров/CDN Precache'ров элементами данных:
-![ACME CDN Summary Host](/images/2022-02-06-open-source-cdn-7.png)
+![ACME CDN Summary Host]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-7.png)
 
 ### CDN
 Из суммируемого элемента данных по входящему трафику:
 
-![ACME CDN Total Network Incoming](/images/2022-02-06-open-source-cdn-8.png)
+![ACME CDN Total Network Incoming]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-8.png)
 
 и суммируемого элемента данных по исходящему трафику:
 
-![ACME CDN Total Network Outgoing](/images/2022-02-06-open-source-cdn-9.png)
+![ACME CDN Total Network Outgoing]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-9.png)
 
 строится основной график потребления трафика в CDN:
 
-![ACME CDN Total Networking](/images/2022-02-06-open-source-cdn-10.png)
+![ACME CDN Total Networking]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-10.png)
 
 Помимо общего графика для CDN, созданы общие региональные графики CDN. По ним можно оценивать количество трафика с региона или наличие коллизий с предоставлением сервиса в регионе.
 
 Существует и общий суммирующий график утилизации Cache в CDN:
 
-![ACME CDN Cache Free](/images/2022-02-06-open-source-cdn-11.png)
+![ACME CDN Cache Free]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-11.png)
 
 ### Cache Hit Ratio
 
@@ -702,24 +702,24 @@ UserParameter=cache.ratio[*],echo "scale=2; $(/bin/grep HIT /var/log/nginx/cache
 
 По снятым значениям для каждого CDN Cache'ра строится график:
 
-![ACME CDN Cache Hit Ratio](/images/2022-02-06-open-source-cdn-12.png)
+![ACME CDN Cache Hit Ratio]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-12.png)
 
 ### Origin
 Не менее важным является график трафика из/в Origin Streamer'ы, так как лицензирование платформы определяется количеством гигабит, потребляемых с Origin Streamer'ов:
 
-![ACME CDN Origin Total Traffic](/images/2022-02-06-open-source-cdn-13.png)
+![ACME CDN Origin Total Traffic]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-13.png)
 
 График строится идентичным образом из двух суммирующих элементов данных: элемента данных входящего трафика с CDN Precache'ров:
 
-![ACME CDN Origin Network Incoming](/images/2022-02-06-open-source-cdn-14.png)
+![ACME CDN Origin Network Incoming]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-14.png)
 
 и элементов данных исходящего трафика с CDN Precache'ров:
 
-![ACME CDN Origin Network Outgoing](/images/2022-02-06-open-source-cdn-15.png)
+![ACME CDN Origin Network Outgoing]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-15.png)
 
 Помимо этого, с каждого Origin Streamer'а снимаются значения по объёмам трафика услуг Live/PVR/VoD:
 
-![ACME CDN Origin Services Traffic](/images/2022-02-06-open-source-cdn-16.png)
+![ACME CDN Origin Services Traffic]({{ site.baseurl }}/images/2022-02-06-open-source-cdn-16.png)
 
 ## Диагностика
 > *Внимание:* <br/>
