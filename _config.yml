@@ -3,5 +3,6 @@ github:
   repo: https://github.com/tg-ntwrk/ntwrk.today
 title: Ntwrk Today
 description: Articles collection from telegram ntwrk group members
+baseurl: /ntwrk.today/
 plugins:
   - jekyll-feed
