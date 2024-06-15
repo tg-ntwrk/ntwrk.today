@@ -2,7 +2,7 @@
 
 ## What is this?
 
-[ntwrk.today][(https://tg-ntwrk.github.io/ntwrk.today) is the open sourced articles catalog from members of Telegram group [@ntwrk](https://t.me/ntwrk)
+[ntwrk.today](https://tg-ntwrk.github.io/ntwrk.today) is the open sourced articles catalog from members of Telegram group [@ntwrk](https://t.me/ntwrk)
 
 ## How can I write an article?
 
